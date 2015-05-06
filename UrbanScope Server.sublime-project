@@ -1,0 +1,19 @@
+{
+  "folders":
+  [
+    {
+      "name": "UrbanScope Server",
+      "path": ".",
+      "folder_exclude_patterns": [
+        "db",
+        "dist",
+        "src",
+        "node_modules"
+      ]
+    },
+    {
+      "name": "Source",
+      "path": "src"
+    }
+  ]
+}

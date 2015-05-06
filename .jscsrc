@@ -1,0 +1,6 @@
+{
+  "preset": "jquery",
+  "validateIndentation": 2,
+  "validateLineBreaks": "CRLF",
+  "validateQuoteMarks": "'"
+}

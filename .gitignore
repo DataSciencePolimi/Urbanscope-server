@@ -1,0 +1,20 @@
+!.gitignore
+
+
+### Node
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+
+# Do not install dependencies
+node_modules
+db
+
+### SublimeText project files
+*.sublime-workspace

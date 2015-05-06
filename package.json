@@ -1,0 +1,33 @@
+{
+  "name": "UrbanScopeServer",
+  "version": "0.1.0",
+  "description": "UrbanScope Server",
+  "main": "server.js",
+  "author": "Volox",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js",
+    "server": "node server.js",
+    "compile": "gulp compile",
+    "watch": "gulp watch",
+    "prepublish": "gulp compile"
+  },
+  "dependencies": {
+    "babel-runtime": "5.x",
+    "bluebird": "2.x",
+    "bunyan": "1.x",
+    "co": "4.x",
+    "co-monk": "1.x",
+    "koa": "0.x",
+    "koa-cors": "0.x",
+    "koa-router": "4.x",
+    "lodash": "3.x",
+    "moment": "2.x",
+    "mongorito": "1.x"
+  },
+  "devDependencies": {
+    "gulp": "3.x",
+    "gulp-babel": "5.x",
+    "gulp-sourcemaps": "1.x"
+  }
+}
