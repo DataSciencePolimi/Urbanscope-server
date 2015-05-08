@@ -97,7 +97,7 @@ export default function*() {
   .groupBy( 'nil' )
   .map( ( tweets, nil ) => {
     let langs = _.countBy( tweets, 'lang' );
-    let value = 'To be defined';
+    let value = tweets.length;
     nil = Number( nil ); // Force conversion
 
     return {

@@ -6,11 +6,11 @@
   "author": "Volox",
   "license": "MIT",
   "scripts": {
-    "start": "node server.js",
-    "server": "node server.js",
+    "start": "node server.js | bunyan -o short",
+    "server": "node server.js | bunyan -o short",
     "compile": "gulp compile",
     "watch": "gulp watch",
-    "prepublish": "gulp compile"
+    "postinstall": "gulp compile"
   },
   "dependencies": {
     "babel-runtime": "5.x",
@@ -23,7 +23,7 @@
     "koa-router": "4.x",
     "lodash": "3.x",
     "moment": "2.x",
-    "mongorito": "1.x"
+    "monk": "1.x"
   },
   "devDependencies": {
     "gulp": "3.x",

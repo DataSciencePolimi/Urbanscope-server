@@ -123,7 +123,7 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
 
         response.nils = _lodash2['default'](data).groupBy('nil').map(function (tweets, nil) {
           var langs = _lodash2['default'].countBy(tweets, 'lang');
-          var value = 'To be defined';
+          var value = tweets.length;
           nil = Number(nil); // Force conversion
 
           return {
