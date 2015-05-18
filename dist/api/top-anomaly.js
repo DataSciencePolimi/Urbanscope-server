@@ -18,21 +18,23 @@ var _path2 = _interopRequireDefault(_path);
 
 // Load modules
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _moment = require('moment');
 
 var _moment2 = _interopRequireDefault(_moment);
 
 // Load my modules
 
-var _ = require('./');
+var _2 = require('./');
 
-var _2 = _interopRequireDefault(_);
+var _3 = _interopRequireDefault(_2);
 
 var _model = require('../model/');
 
-var _configNilsJson = require('../../config/nils.json');
-
-var _configNilsJson2 = _interopRequireDefault(_configNilsJson);
+var _utilsAnomalies = require('../utils/anomalies');
 
 'use strict';
 
@@ -41,7 +43,7 @@ var ENDPOINT = _path2['default'].basename(__filename, '.js');
 var DATE_FORMAT = 'YYYY-MM-DD';
 
 // Module variables declaration
-var log = _2['default'].child({ endpoint: ENDPOINT });
+var log = _3['default'].child({ endpoint: ENDPOINT });
 
 // Module functions declaration
 function now() {
@@ -56,7 +58,7 @@ function now() {
 
 // Exports
 exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
-  var qs, lang, start, end, limit, query;
+  var qs, lang, start, end, limit, query, collection, data, response, top;
   return _regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
@@ -69,19 +71,19 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
         log.trace({ qs: qs }, 'Query string');
 
         // Default values
+        limit = limit || 3;
         lang = lang || 'it';
         start = start || now();
         end = end || now();
-        limit = limit || 3;
 
         lang = lang.toLowerCase();
         start = _moment2['default'].utc(start, DATE_FORMAT).startOf('day').toDate();
         end = _moment2['default'].utc(end, DATE_FORMAT).endOf('day').toDate();
 
         log.trace('Lang: %s', lang);
+        log.trace('Limit: %d', limit);
         log.trace('Start: %s', start);
         log.trace('End: %s', end);
-        log.trace('Limit: %d', limit);
 
         query = {
           source: 'twitter',
@@ -90,40 +92,33 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
             $lte: end } };
 
         // Narrow by language
-        if (lang === 'it') {
-          query.lang = 'it';
-        } else if (lang === 'en') {
-          query.lang = 'en';
-        } else if (lang === 'other') {
-          query.lang = {
-            $nin: ['it', 'en'] };
-        }
+        query.lang = {
+          $ne: 'und' };
 
-        this.status = 501;
-        this.body = 'Not yet implemented';
+        log.debug({ query: query }, 'Performing the query');
+        collection = _model.getCollection();
+        context$1$0.next = 23;
+        return collection.find(query, 'lang nil');
 
-        /*
-        log.debug( { query }, 'Performing the query' );
-        let collection = getCollection();
-        let data = yield collection.find( query, '-raw' );
-          let response = {
-          startDate: moment( start ).format( DATE_FORMAT ),
-          endDate: moment( end ).format( DATE_FORMAT ),
-          lang: lang,
-        };
-          let top = [];
-          response.top = top;
+      case 23:
+        data = context$1$0.sent;
+        response = {
+          startDate: _moment2['default'](start).format(DATE_FORMAT),
+          endDate: _moment2['default'](end).format(DATE_FORMAT),
+          lang: lang };
+        top = _utilsAnomalies.getNilAnomalies(data, lang);
+
+        response.top = _lodash2['default'](top).sortByOrder('value', false).take(limit).value();
+
         this.body = response;
-        */
 
-      case 21:
+      case 28:
       case 'end':
         return context$1$0.stop();
     }
   }, callee$0$0, this);
 });
 module.exports = exports['default'];
-// jshint ignore: line
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78
 //# sourceMappingURL=../api/top-anomaly.js.map

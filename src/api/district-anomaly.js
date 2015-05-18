@@ -8,11 +8,12 @@ import moment from 'moment';
 // Load my modules
 import logger from './';
 import { getCollection } from '../model/';
-import nils from '../../config/nils.json';
+import { getNilAnomalies } from '../utils/anomalies';
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
 const DATE_FORMAT = 'YYYY-MM-DD';
+const GREY_THRESHOLD = 6;
 
 // Module variables declaration
 let log = logger.child( { endpoint: ENDPOINT } );
@@ -62,15 +63,9 @@ export default function*() {
   };
 
   // Narrow by language
-  if( lang==='it' ) {
-    query.lang = 'it';
-  } else if( lang==='en' ) {
-    query.lang = 'en';
-  } else if( lang==='other' ) {
-    query.lang = {
-      $nin: [ 'it', 'en' ],
-    };
-  }
+  query.lang = {
+    $ne: 'und',
+  };
 
   // Narrow by NIL (if present)
   if( nil ) {
@@ -81,28 +76,19 @@ export default function*() {
     };
   }
 
-  this.status = 501;
-  this.body = 'Not yet implemented';
-
-  /*
   log.debug( { query }, 'Performing the query' );
   let collection = getCollection();
-  let data = yield collection.find( query, '-raw' );
-
+  let data = yield collection.find( query, 'lang nil' );
 
 
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
     lang: lang,
+    nils: getNilAnomalies( data, lang ),
   };
-  let nils = [];
 
-  response.nils = nils;
-
-  response.nils = nils;
   this.body = response;
-  */
 }
 
 

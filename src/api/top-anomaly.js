@@ -3,12 +3,13 @@
 import path from 'path';
 
 // Load modules
+import _ from 'lodash';
 import moment from 'moment';
 
 // Load my modules
 import logger from './';
 import { getCollection } from '../model/';
-import nils from '../../config/nils.json';
+import { getNilAnomalies } from '../utils/anomalies';
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -21,6 +22,7 @@ let log = logger.child( { endpoint: ENDPOINT } );
 function now() {
   return moment().format( DATE_FORMAT );
 }
+
 
 // Module class declaration
 
@@ -35,24 +37,24 @@ export default function*() {
     lang,
     startDate: start,
     endDate: end,
-    limit, // jshint ignore: line
+    limit,
   } = qs;
   log.trace( { qs }, 'Query string' );
 
   // Default values
+  limit = limit || 3;
   lang = lang || 'it';
   start = start || now();
   end = end || now();
-  limit = limit || 3;
 
   lang = lang.toLowerCase();
   start = moment.utc( start, DATE_FORMAT ).startOf( 'day' ).toDate();
   end = moment.utc( end, DATE_FORMAT ).endOf( 'day' ).toDate();
 
   log.trace( 'Lang: %s', lang );
+  log.trace( 'Limit: %d', limit );
   log.trace( 'Start: %s', start );
   log.trace( 'End: %s', end );
-  log.trace( 'Limit: %d', limit );
 
   let query = {
     source: 'twitter',
@@ -63,24 +65,14 @@ export default function*() {
   };
 
   // Narrow by language
-  if( lang==='it' ) {
-    query.lang = 'it';
-  } else if( lang==='en' ) {
-    query.lang = 'en';
-  } else if( lang==='other' ) {
-    query.lang = {
-      $nin: [ 'it', 'en' ],
-    };
-  }
+  query.lang = {
+    $ne: 'und',
+  };
 
-  this.status = 501;
-  this.body = 'Not yet implemented';
-
-
-  /*
   log.debug( { query }, 'Performing the query' );
   let collection = getCollection();
-  let data = yield collection.find( query, '-raw' );
+  let data = yield collection.find( query, 'lang nil' );
+
 
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
@@ -88,11 +80,15 @@ export default function*() {
     lang: lang,
   };
 
-  let top = [];
 
-  response.top = top;
+  let top = getNilAnomalies( data, lang );
+
+  response.top = _( top )
+  .sortByOrder( 'value', false )
+  .take( limit )
+  .value();
+
   this.body = response;
-  */
 }
 
 

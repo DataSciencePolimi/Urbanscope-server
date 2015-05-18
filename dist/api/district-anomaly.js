@@ -30,15 +30,14 @@ var _2 = _interopRequireDefault(_);
 
 var _model = require('../model/');
 
-var _configNilsJson = require('../../config/nils.json');
-
-var _configNilsJson2 = _interopRequireDefault(_configNilsJson);
+var _utilsAnomalies = require('../utils/anomalies');
 
 'use strict';
 
 // Constant declaration
 var ENDPOINT = _path2['default'].basename(__filename, '.js');
 var DATE_FORMAT = 'YYYY-MM-DD';
+var GREY_THRESHOLD = 6;
 
 // Module variables declaration
 var log = _2['default'].child({ endpoint: ENDPOINT });
@@ -56,7 +55,7 @@ function now() {
 
 // Exports
 exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
-  var qs, lang, start, end, nil, query, nilList;
+  var qs, lang, start, end, nil, query, nilList, collection, data, response;
   return _regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
@@ -89,14 +88,8 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
             $lte: end } };
 
         // Narrow by language
-        if (lang === 'it') {
-          query.lang = 'it';
-        } else if (lang === 'en') {
-          query.lang = 'en';
-        } else if (lang === 'other') {
-          query.lang = {
-            $nin: ['it', 'en'] };
-        }
+        query.lang = {
+          $ne: 'und' };
 
         // Narrow by NIL (if present)
         if (nil) {
@@ -108,26 +101,22 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
             $in: nilList };
         }
 
-        this.status = 501;
-        this.body = 'Not yet implemented';
+        log.debug({ query: query }, 'Performing the query');
+        collection = _model.getCollection();
+        context$1$0.next = 23;
+        return collection.find(query, 'lang nil');
 
-        /*
-        log.debug( { query }, 'Performing the query' );
-        let collection = getCollection();
-        let data = yield collection.find( query, '-raw' );
-        
-          let response = {
-          startDate: moment( start ).format( DATE_FORMAT ),
-          endDate: moment( end ).format( DATE_FORMAT ),
+      case 23:
+        data = context$1$0.sent;
+        response = {
+          startDate: _moment2['default'](start).format(DATE_FORMAT),
+          endDate: _moment2['default'](end).format(DATE_FORMAT),
           lang: lang,
-        };
-        let nils = [];
-          response.nils = nils;
-          response.nils = nils;
-        this.body = response;
-        */
+          nils: _utilsAnomalies.getNilAnomalies(data, lang) };
 
-      case 21:
+        this.body = response;
+
+      case 26:
       case 'end':
         return context$1$0.stop();
     }
