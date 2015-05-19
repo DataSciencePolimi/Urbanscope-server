@@ -16,8 +16,6 @@ var _bunyan = require('bunyan');
 
 var _bunyan2 = _interopRequireDefault(_bunyan);
 
-'use strict';
-
 // Load my modules
 
 // Constant declaration

@@ -9,7 +9,7 @@ import moment from 'moment';
 // Load my modules
 import logger from './';
 import { getCollection } from '../model/';
-import { getNilAnomalies } from '../utils/anomalies';
+import { getNilAnomalies, NILS_TO_USE } from '../utils/anomalies';
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -67,6 +67,10 @@ export default function*() {
   // Narrow by language
   query.lang = {
     $ne: 'und',
+  };
+
+  query.nil = {
+    $in: NILS_TO_USE,
   };
 
   log.debug( { query }, 'Performing the query' );

@@ -32,19 +32,16 @@ var _model = require('../model/');
 
 var _utilsAnomalies = require('../utils/anomalies');
 
-'use strict';
-
 // Constant declaration
 var ENDPOINT = _path2['default'].basename(__filename, '.js');
 var DATE_FORMAT = 'YYYY-MM-DD';
-var GREY_THRESHOLD = 6;
 
 // Module variables declaration
 var log = _2['default'].child({ endpoint: ENDPOINT });
 
 // Module functions declaration
 function now() {
-  return _moment2['default']().format(DATE_FORMAT);
+  return (0, _moment2['default'])().format(DATE_FORMAT);
 }
 
 // Module class declaration
@@ -102,17 +99,17 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
         }
 
         log.debug({ query: query }, 'Performing the query');
-        collection = _model.getCollection();
+        collection = (0, _model.getCollection)();
         context$1$0.next = 23;
         return collection.find(query, 'lang nil');
 
       case 23:
         data = context$1$0.sent;
         response = {
-          startDate: _moment2['default'](start).format(DATE_FORMAT),
-          endDate: _moment2['default'](end).format(DATE_FORMAT),
+          startDate: (0, _moment2['default'])(start).format(DATE_FORMAT),
+          endDate: (0, _moment2['default'])(end).format(DATE_FORMAT),
           lang: lang,
-          nils: _utilsAnomalies.getNilAnomalies(data, lang) };
+          nils: (0, _utilsAnomalies.getNilAnomalies)(data, lang) };
 
         this.body = response;
 

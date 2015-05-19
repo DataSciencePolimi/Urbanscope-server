@@ -135,15 +135,15 @@ function getNilAnomalies( posts, lang ) {
     let type;
 
     if( selectedLanguagePercentage<=t1 ) {
-      type = 'perc molt bas';
+      type = 'Percentiale molto bassa';
     } else if ( selectedLanguagePercentage>t1 && selectedLanguagePercentage<=t2 ) {
-      type = 'perc bas';
+      type = 'Percentiale bassa';
     } else if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
-      type = 'perc non ano';
+      type = 'Percentiale non anomala';
     } else if ( selectedLanguagePercentage>t3 && selectedLanguagePercentage<=t4 ) {
-      type = 'perc alt';
+      type = 'Percentiale alta';
     } else if ( selectedLanguagePercentage>t4 ) {
-      type = 'perc mol alt';
+      type = 'Percentiale molto alta';
     }
 
     return {
@@ -164,7 +164,7 @@ function getNilAnomalies( posts, lang ) {
 // Entry point
 
 // Exports
-export { getNilAnomalies };
+export { getNilAnomalies, NILS_TO_USE };
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

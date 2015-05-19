@@ -34,8 +34,6 @@ var _3 = _interopRequireDefault(_2);
 
 var _model = require('../model/');
 
-'use strict';
-
 // Constant declaration
 var ENDPOINT = _path2['default'].basename(__filename, '.js');
 var DATE_FORMAT = 'YYYY-MM-DD';
@@ -45,7 +43,7 @@ var log = _3['default'].child({ endpoint: ENDPOINT });
 
 // Module functions declaration
 function now() {
-  return _moment2['default']().format(DATE_FORMAT);
+  return (0, _moment2['default'])().format(DATE_FORMAT);
 }
 
 // Module class declaration
@@ -97,18 +95,18 @@ exports['default'] = _regeneratorRuntime.mark(function callee$0$0() {
         }
 
         log.debug({ query: query }, 'Performing the query');
-        collection = _model.getCollection();
+        collection = (0, _model.getCollection)();
         context$1$0.next = 20;
         return collection.find(query, 'date lang');
 
       case 20:
         data = context$1$0.sent;
         response = {
-          startDate: _moment2['default'](start).format(DATE_FORMAT),
-          endDate: _moment2['default'](end).format(DATE_FORMAT),
+          startDate: (0, _moment2['default'])(start).format(DATE_FORMAT),
+          endDate: (0, _moment2['default'])(end).format(DATE_FORMAT),
           lang: lang };
-        timeline = _lodash2['default'](data).groupBy(function (post) {
-          return _moment2['default'](post.date).format('YYYY-MM');
+        timeline = (0, _lodash2['default'])(data).groupBy(function (post) {
+          return (0, _moment2['default'])(post.date).format('YYYY-MM');
         }).map(function (posts, date) {
           var value = posts.length;
           return {

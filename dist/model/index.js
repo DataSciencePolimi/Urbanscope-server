@@ -34,8 +34,6 @@ var _configMongoJson = require('../../config/mongo.json');
 
 var _configMongoJson2 = _interopRequireDefault(_configMongoJson);
 
-'use strict';
-
 // Constant declaration
 var COLLECTION_NAME = 'posts';
 
@@ -53,7 +51,7 @@ function getDB() {
 function getCollection() {
   var name = arguments[0] === undefined ? COLLECTION_NAME : arguments[0];
 
-  return _coMonk2['default'](db.get(name));
+  return (0, _coMonk2['default'])(db.get(name));
 }
 function open() {
   var hostname = _configMongoJson2['default'].url;
@@ -61,7 +59,7 @@ function open() {
   var fullUrl = _url2['default'].resolve(hostname + '/', dbName);
 
   log.trace(fullUrl);
-  db = _monk2['default'](fullUrl);
+  db = (0, _monk2['default'])(fullUrl);
   collection = getCollection();
 
   return db;

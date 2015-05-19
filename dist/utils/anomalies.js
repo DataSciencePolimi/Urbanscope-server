@@ -16,8 +16,6 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-'use strict';
-
 // Load my modules
 
 // Constant declaration
@@ -88,14 +86,14 @@ function getLanguage(post) {
 function getLanguagesPercentage(posts) {
   var length = posts.length;
 
-  return _lodash2['default'](posts).countBy(getLanguage).mapValues(function (count) {
+  return (0, _lodash2['default'])(posts).countBy(getLanguage).mapValues(function (count) {
     return count / length;
   }).value();
 }
 
 function getNilAnomalies(posts, lang) {
 
-  var languagePercentagePerNil = _lodash2['default'](posts)
+  var languagePercentagePerNil = (0, _lodash2['default'])(posts)
   // Group by nil
   .groupBy('nil')
   // Use only the provided NILS
@@ -104,7 +102,7 @@ function getNilAnomalies(posts, lang) {
   .mapValues(getLanguagesPercentage).value();
 
   // Calculate the quartiles and the thresholds of the selected language
-  var selectedLanguagePercentages = _lodash2['default'](languagePercentagePerNil)
+  var selectedLanguagePercentages = (0, _lodash2['default'])(languagePercentagePerNil)
   // Get the percentages for the selected language
   .map(lang)
   // Sort ascending
@@ -118,20 +116,20 @@ function getNilAnomalies(posts, lang) {
   var t4 = _thresholds.threshold4;
 
   // Map the nil to the correct output
-  return _lodash2['default'](languagePercentagePerNil).map(function (langs, nil) {
+  return (0, _lodash2['default'])(languagePercentagePerNil).map(function (langs, nil) {
     var selectedLanguagePercentage = langs[lang];
     var type = undefined;
 
     if (selectedLanguagePercentage <= t1) {
-      type = 'perc molt bas';
+      type = 'Percentiale molto bassa';
     } else if (selectedLanguagePercentage > t1 && selectedLanguagePercentage <= t2) {
-      type = 'perc bas';
+      type = 'Percentiale bassa';
     } else if (selectedLanguagePercentage > t2 && selectedLanguagePercentage <= t3) {
-      type = 'perc non ano';
+      type = 'Percentiale non anomala';
     } else if (selectedLanguagePercentage > t3 && selectedLanguagePercentage <= t4) {
-      type = 'perc alt';
+      type = 'Percentiale alta';
     } else if (selectedLanguagePercentage > t4) {
-      type = 'perc mol alt';
+      type = 'Percentiale molto alta';
     }
 
     return {
@@ -151,5 +149,6 @@ function getNilAnomalies(posts, lang) {
 exports.getNilAnomalies = getNilAnomalies;
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78
+exports.NILS_TO_USE = NILS_TO_USE;
 // jshint ignore:line
 //# sourceMappingURL=../utils/anomalies.js.map

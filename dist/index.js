@@ -1,12 +1,12 @@
-
-// Load system modules
-
-// Load modules
 'use strict';
 
 var _regeneratorRuntime = require('babel-runtime/regenerator')['default'];
 
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+
+// Load system modules
+
+// Load modules
 
 var _co = require('co');
 
@@ -56,12 +56,10 @@ var _apiTextTweets = require('./api/text-tweets');
 
 var _apiTextTweets2 = _interopRequireDefault(_apiTextTweets);
 
-'use strict';
-
 // Constant declaration
 
 // Module variables declaration
-var app = _koa2['default']();
+var app = (0, _koa2['default'])();
 var log = _bunyan2['default'].createLogger({
   name: 'server',
   level: 'trace' });
@@ -75,16 +73,16 @@ app.name = 'UrbanScope server';
 app.proxy = true;
 
 // Entry point
-_co2['default'](_regeneratorRuntime.mark(function callee$0$0() {
+(0, _co2['default'])(_regeneratorRuntime.mark(function callee$0$0() {
   var router, port;
   return _regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
     while (1) switch (context$1$0.prev = context$1$0.next) {
       case 0:
         // Setup mongo
-        _model.open();
+        (0, _model.open)();
 
         // Middlewares
-        app.use(_koaCors2['default']());
+        app.use((0, _koaCors2['default'])());
 
         router = new _koaRouter2['default'](app);
 
@@ -110,7 +108,7 @@ _co2['default'](_regeneratorRuntime.mark(function callee$0$0() {
   }, callee$0$0, this);
 }))['catch'](function (err) {
   log.fatal(err, 'NUOOOOOOOOO');
-  _model.close();
+  (0, _model.close)();
   process.exit(1);
 });
 

@@ -1,5 +1,19 @@
 !.gitignore
 
+# OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.AppleDB
+.AppleDesktop
+.apdisk
+
 
 ### Node
 lib-cov
@@ -12,9 +26,13 @@ lib-cov
 *.gz
 
 
-# Do not install dependencies
+# Do not sync dependencies
 node_modules
-db
+
+# Do not configuration files
+!config/nils.json
+config/*.json
+
 
 ### SublimeText project files
 *.sublime-workspace

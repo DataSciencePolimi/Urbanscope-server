@@ -13,7 +13,6 @@ import { getNilAnomalies } from '../utils/anomalies';
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
 const DATE_FORMAT = 'YYYY-MM-DD';
-const GREY_THRESHOLD = 6;
 
 // Module variables declaration
 let log = logger.child( { endpoint: ENDPOINT } );
