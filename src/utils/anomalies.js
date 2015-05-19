@@ -135,15 +135,15 @@ function getNilAnomalies( posts, lang ) {
     let type;
 
     if( selectedLanguagePercentage<=t1 ) {
-      type = 'Percentiale molto bassa';
+      type = 'Percentuale molto bassa';
     } else if ( selectedLanguagePercentage>t1 && selectedLanguagePercentage<=t2 ) {
-      type = 'Percentiale bassa';
+      type = 'Percentuale bassa';
     } else if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
-      type = 'Percentiale non anomala';
+      type = 'Percentuale non anomala';
     } else if ( selectedLanguagePercentage>t3 && selectedLanguagePercentage<=t4 ) {
-      type = 'Percentiale alta';
+      type = 'Percentuale alta';
     } else if ( selectedLanguagePercentage>t4 ) {
-      type = 'Percentiale molto alta';
+      type = 'Percentuale molto alta';
     }
 
     return {
