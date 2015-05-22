@@ -65,7 +65,8 @@ module.exports = function* () {
     query.lang = 'it';
   } else if( lang==='en' ) {
     query.lang = 'en';
-  } else if( lang==='other' ) {
+  } else {
+    lang = 'other';
     query.lang = {
       $nin: [ 'it', 'en', 'und' ],
     };

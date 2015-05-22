@@ -65,6 +65,7 @@ module.exports = function* () {
 
   // Narrow by language
   query.lang = {
+    $in: [ lang ],
     $ne: 'und',
   };
 
