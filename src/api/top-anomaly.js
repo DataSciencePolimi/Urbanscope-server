@@ -1,15 +1,16 @@
 'use strict';
 // Load system modules
-import path from 'path';
+let path = require( 'path' );
 
 // Load modules
-import _ from 'lodash';
-import moment from 'moment';
+let _ = require( 'lodash' );
+let moment = require( 'moment' );
 
 // Load my modules
-import logger from './';
-import { getCollection } from '../model/';
-import { getNilAnomalies, NILS_TO_USE } from '../utils/anomalies';
+let logger = require( './' );
+let getCollection = require( '../model/' ).getCollection;
+let getNilAnomalies = require( '../utils/anomalies' ).getNilAnomalies;
+let NILS_TO_USE = require( '../utils/anomalies' ).NILS_TO_USE;
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -31,15 +32,13 @@ function now() {
 // Entry point
 
 // Exports
-export default function*() {
+module.exports = function* () {
   let qs = this.request.query;
-  let {
-    lang,
-    startDate: start,
-    endDate: end,
-    limit,
-  } = qs;
-  log.trace( { qs }, 'Query string' );
+  let start = qs.startDate;
+  let end = qs.endDate;
+  let limit = qs.limit;
+  let lang = qs.lang;
+  log.trace( { qs: qs }, 'Query string' );
 
   // Default values
   limit = limit || 3;
@@ -73,7 +72,7 @@ export default function*() {
     $in: NILS_TO_USE,
   };
 
-  log.debug( { query }, 'Performing the query' );
+  log.debug( { query: query }, 'Performing the query' );
   let collection = getCollection();
   let data = yield collection.find( query, 'lang nil' );
 
@@ -93,7 +92,7 @@ export default function*() {
   .value();
 
   this.body = response;
-}
+};
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

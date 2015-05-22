@@ -2,7 +2,7 @@
 // Load system modules
 
 // Load modules
-import _ from 'lodash';
+let _  = require( 'lodash' );
 
 // Load my modules
 
@@ -39,6 +39,8 @@ function q( i, data ) {
 
   let prod = n*Fi;
   let val;
+
+  // Check if the product is an integer
   if( int( prod )===prod ) {
     val = (data[ prod-1 ] + data[ prod ])/2;
   } else {
@@ -54,17 +56,17 @@ function quartiles( percentages ) {
   let quartile4 = q( 4, percentages );
 
   return {
-    quartile1,
-    quartile2,
-    quartile3,
-    quartile4,
+    quartile1: quartile1,
+    quartile2: quartile2,
+    quartile3: quartile3,
+    quartile4: quartile4,
   };
 }
 function thresholds( percentages ) {
-  let {
-    quartile1: q1,
-    quartile3: q3,
-  } = quartiles( percentages );
+  let quarts = quartiles( percentages );
+  let q1 = quarts.quartile1;
+  let q3 = quarts.quartile3;
+
 
   let threshold1 = q1-1.5*(q3-q1);
   let threshold2 = q1;
@@ -72,10 +74,10 @@ function thresholds( percentages ) {
   let threshold4 = q3+1.5*(q3-q1);
 
   return {
-    threshold1,
-    threshold2,
-    threshold3,
-    threshold4,
+    threshold1: threshold1,
+    threshold2: threshold2,
+    threshold3: threshold3,
+    threshold4: threshold4,
   };
 }
 /*
@@ -97,7 +99,9 @@ function getLanguagesPercentage( posts ) {
 
   return _( posts )
   .countBy( getLanguage )
-  .mapValues( count => count/length )
+  .mapValues( function( count ) {
+    return count/length;
+  } )
   .value();
 }
 
@@ -120,12 +124,11 @@ function getNilAnomalies( posts, lang ) {
   .sortBy()
   .value();
 
-  let {
-    threshold1: t1,
-    threshold2: t2,
-    threshold3: t3,
-    threshold4: t4,
-  } = thresholds( selectedLanguagePercentages );
+  let ths = thresholds( selectedLanguagePercentages );
+  let t1 = ths.threshold1;
+  let t2 = ths.threshold2;
+  let t3 = ths.threshold3;
+  let t4 = ths.threshold4;
 
 
   // Map the nil to the correct output
@@ -148,7 +151,7 @@ function getNilAnomalies( posts, lang ) {
 
     return {
       value: selectedLanguagePercentage,
-      type,
+      type: type,
       nil_id: Number( nil ), // jshint ignore:line
     };
   } )
@@ -164,7 +167,8 @@ function getNilAnomalies( posts, lang ) {
 // Entry point
 
 // Exports
-export { getNilAnomalies, NILS_TO_USE };
+module.exports.getNilAnomalies = getNilAnomalies;
+module.exports.NILS_TO_USE = NILS_TO_USE;
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

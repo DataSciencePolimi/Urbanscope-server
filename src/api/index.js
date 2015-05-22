@@ -2,7 +2,7 @@
 // Load system modules
 
 // Load modules
-import bunyan from 'bunyan';
+let bunyan = require( 'bunyan' );
 
 // Load my modules
 
@@ -25,7 +25,7 @@ let log = bunyan.createLogger( {
 // Entry point
 
 // Exports
-export default log;
+module.exports = log;
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

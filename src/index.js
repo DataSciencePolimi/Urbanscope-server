@@ -2,20 +2,21 @@
 // Load system modules
 
 // Load modules
-import co from 'co';
-import koa from 'koa';
-import Router  from 'koa-router';
-import cors  from 'koa-cors';
-import bunyan from 'bunyan';
+let co = require( 'co' );
+let koa = require( 'koa' );
+let Router = require( 'koa-router' );
+let cors = require( 'koa-cors' );
+let bunyan = require( 'bunyan' );
 
 // Load my modules
-import { open as openMongo, close as closeMongo } from './model/';
-import serverConfig from '../config/server.json';
-import districtAnomaly from './api/district-anomaly';
-import topAnomaly from './api/top-anomaly';
-import districtTweets from './api/district-tweets';
-import timelineTweets from './api/timeline-tweets';
-import textTweets from './api/text-tweets';
+let serverConfig = require( '../config/server.json' );
+let districtAnomaly = require( './api/district-anomaly' );
+let topAnomaly = require( './api/top-anomaly' );
+let districtTweets = require( './api/district-tweets' );
+let timelineTweets = require( './api/timeline-tweets' );
+let textTweets = require( './api/text-tweets' );
+let openMongo = require( './model/' ).open;
+let closeMongo = require( './model/' ).close;
 
 
 // Constant declaration
@@ -62,11 +63,11 @@ co( function*() {
   app.use( router.allowedMethods() );
 
   // Start server
-  let { port } = serverConfig;
+  let port = serverConfig.port;
   log.debug( 'Start server @ port %d', port );
   app.listen( port );
 } )
-.catch( err => {
+.catch( function( err ) {
   log.fatal( err, 'NUOOOOOOOOO' );
   closeMongo();
   process.exit( 1 );

@@ -1,14 +1,14 @@
 'use strict';
 // Load system modules
-import path from 'path';
+let path = require( 'path' );
 
 // Load modules
-import _ from 'lodash';
-import moment from 'moment';
+let _ = require( 'lodash' );
+let moment = require( 'moment' );
 
 // Load my modules
-import logger from './';
-import { getCollection } from '../model/';
+let logger = require( './' );
+let getCollection = require( '../model/' ).getCollection;
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -29,14 +29,12 @@ function now() {
 // Entry point
 
 // Exports
-export default function*() {
+module.exports = function* () {
   let qs = this.request.query;
-  let {
-    lang,
-    startDate: start,
-    endDate: end,
-  } = qs;
-  log.trace( { qs }, 'Query string' );
+  let lang = qs.lang;
+  let start = qs.startDate;
+  let end = qs.endDate;
+  log.trace( { qs: qs }, 'Query string' );
 
   // Default values
   lang = lang || 'it';
@@ -66,11 +64,11 @@ export default function*() {
     query.lang = 'en';
   } else if( lang==='other' ) {
     query.lang = {
-      $nin: [ 'it', 'en' ],
+      $nin: [ 'it', 'en', 'und' ],
     };
   }
 
-  log.debug( { query }, 'Performing the query' );
+  log.debug( { query: query }, 'Performing the query' );
   let collection = getCollection();
   let data = yield collection.find( query, 'date lang' );
 
@@ -81,14 +79,13 @@ export default function*() {
   };
 
   let timeline = _( data )
-  .groupBy( post => {
+  .groupBy( function( post ) {
     return moment( post.date ).format( 'YYYY-MM' );
   } )
-  .map( ( posts, date ) => {
-    let value = posts.length;
+  .map( function( posts, date ) {
     return {
-      date,
-      value,
+      date: date,
+      value: posts.length,
     };
   } )
   .value();
@@ -99,7 +96,7 @@ export default function*() {
 
   response.timeline = timeline;
   this.body = response;
-}
+};
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

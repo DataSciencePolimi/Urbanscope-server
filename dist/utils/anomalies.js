@@ -1,20 +1,8 @@
 'use strict';
-
-var _Object$defineProperty = require('babel-runtime/core-js/object/define-property')['default'];
-
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
-
-_Object$defineProperty(exports, '__esModule', {
-  value: true
-});
-
 // Load system modules
 
 // Load modules
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
+var _ = require('lodash');
 
 // Load my modules
 
@@ -32,6 +20,8 @@ function q(i, data) {
 
   var prod = n * Fi;
   var val = undefined;
+
+  // Check if the product is an integer
   if (int(prod) === prod) {
     val = (data[prod - 1] + data[prod]) / 2;
   } else {
@@ -53,10 +43,9 @@ function quartiles(percentages) {
     quartile4: quartile4 };
 }
 function thresholds(percentages) {
-  var _quartiles = quartiles(percentages);
-
-  var q1 = _quartiles.quartile1;
-  var q3 = _quartiles.quartile3;
+  var quarts = quartiles(percentages);
+  var q1 = quarts.quartile1;
+  var q3 = quarts.quartile3;
 
   var threshold1 = q1 - 1.5 * (q3 - q1);
   var threshold2 = q1;
@@ -86,14 +75,14 @@ function getLanguage(post) {
 function getLanguagesPercentage(posts) {
   var length = posts.length;
 
-  return (0, _lodash2['default'])(posts).countBy(getLanguage).mapValues(function (count) {
+  return _(posts).countBy(getLanguage).mapValues(function (count) {
     return count / length;
   }).value();
 }
 
 function getNilAnomalies(posts, lang) {
 
-  var languagePercentagePerNil = (0, _lodash2['default'])(posts)
+  var languagePercentagePerNil = _(posts)
   // Group by nil
   .groupBy('nil')
   // Use only the provided NILS
@@ -102,34 +91,33 @@ function getNilAnomalies(posts, lang) {
   .mapValues(getLanguagesPercentage).value();
 
   // Calculate the quartiles and the thresholds of the selected language
-  var selectedLanguagePercentages = (0, _lodash2['default'])(languagePercentagePerNil)
+  var selectedLanguagePercentages = _(languagePercentagePerNil)
   // Get the percentages for the selected language
   .map(lang)
   // Sort ascending
   .sortBy().value();
 
-  var _thresholds = thresholds(selectedLanguagePercentages);
-
-  var t1 = _thresholds.threshold1;
-  var t2 = _thresholds.threshold2;
-  var t3 = _thresholds.threshold3;
-  var t4 = _thresholds.threshold4;
+  var ths = thresholds(selectedLanguagePercentages);
+  var t1 = ths.threshold1;
+  var t2 = ths.threshold2;
+  var t3 = ths.threshold3;
+  var t4 = ths.threshold4;
 
   // Map the nil to the correct output
-  return (0, _lodash2['default'])(languagePercentagePerNil).map(function (langs, nil) {
+  return _(languagePercentagePerNil).map(function (langs, nil) {
     var selectedLanguagePercentage = langs[lang];
     var type = undefined;
 
     if (selectedLanguagePercentage <= t1) {
-      type = 'Percentiale molto bassa';
+      type = 'Percentuale molto bassa';
     } else if (selectedLanguagePercentage > t1 && selectedLanguagePercentage <= t2) {
-      type = 'Percentiale bassa';
+      type = 'Percentuale bassa';
     } else if (selectedLanguagePercentage > t2 && selectedLanguagePercentage <= t3) {
-      type = 'Percentiale non anomala';
+      type = 'Percentuale non anomala';
     } else if (selectedLanguagePercentage > t3 && selectedLanguagePercentage <= t4) {
-      type = 'Percentiale alta';
+      type = 'Percentuale alta';
     } else if (selectedLanguagePercentage > t4) {
-      type = 'Percentiale molto alta';
+      type = 'Percentuale molto alta';
     }
 
     return {
@@ -146,9 +134,9 @@ function getNilAnomalies(posts, lang) {
 // Entry point
 
 // Exports
-exports.getNilAnomalies = getNilAnomalies;
+module.exports.getNilAnomalies = getNilAnomalies;
+module.exports.NILS_TO_USE = NILS_TO_USE;
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78
-exports.NILS_TO_USE = NILS_TO_USE;
 // jshint ignore:line
 //# sourceMappingURL=../utils/anomalies.js.map

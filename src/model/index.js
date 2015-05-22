@@ -1,14 +1,14 @@
 'use strict';
 // Load system modules
-import url from 'url';
+let url = require( 'url' );
 
 // Load modules
-import bunyan from 'bunyan';
-import monk from 'monk';
-import wrap from 'co-monk';
+let bunyan = require( 'bunyan' );
+let monk = require( 'monk' );
+let wrap = require( 'co-monk' );
 
 // Load my modules
-import config from '../../config/mongo.json';
+let config = require( '../../config/mongo.json' );
 
 // Constant declaration
 const COLLECTION_NAME = 'posts';
@@ -25,7 +25,8 @@ let log = bunyan.createLogger( {
 function getDB() {
   return db;
 }
-function getCollection( name=COLLECTION_NAME ) {
+function getCollection( name ) {
+  name = name || COLLECTION_NAME;
   return wrap( db.get( name ) );
 }
 function open() {
@@ -50,7 +51,10 @@ function close() {
 // Entry point
 
 // Exports
-export { open, close, getDB, getCollection };
+module.exports.open = open;
+module.exports.close = close;
+module.exports.getDB = getDB;
+module.exports.getCollection = getCollection;
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

@@ -1,13 +1,14 @@
 'use strict';
 // Load system modules
-import path from 'path';
+let path = require( 'path' );
 
 // Load modules
-import moment from 'moment';
+let _ = require( 'lodash' );
+let moment = require( 'moment' );
 
 // Load my modules
-import logger from './';
-import { getCollection } from '../model/';
+let logger = require( './' );
+let getCollection = require( '../model/' ).getCollection;
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -20,6 +21,17 @@ let log = logger.child( { endpoint: ENDPOINT } );
 function now() {
   return moment().format( DATE_FORMAT );
 }
+function filterTweet( tweet ) {
+  return !tweet.raw.possibly_sensitive; //jshint ignore:line
+}
+function computeScore( tweet ) {
+  let newTweet = _.omit( tweet, 'raw' );
+
+  let score = tweet.raw.retweet_count + tweet.raw.favorite_count; // jshint ignore: line
+
+  newTweet.score = score;
+  return newTweet;
+}
 
 // Module class declaration
 
@@ -28,21 +40,23 @@ function now() {
 // Entry point
 
 // Exports
-export default function*() {
+module.exports = function* () {
   let qs = this.request.query;
-  let {
-    startDate: start,
-    endDate: end,
-    nil_ID: nil, // jshint ignore: line
-  } = qs;
-  log.trace( { qs }, 'Query string' );
+  let start = qs.startDate;
+  let end = qs.endDate;
+  let nil = qs.nil_ID; // jshint ignore: line
+  let lang = qs.lang;
+  let limit = qs.limit;
+  log.trace( { qs: qs }, 'Query string' );
 
   // Default values
+  lang = lang || 'it';
+  limit = limit || 100;
   start = start || now();
   end = end || now();
 
-  start = moment.utc( start, DATE_FORMAT ).startOf( 'day' ).toDate();
-  end = moment.utc( end, DATE_FORMAT ).endOf( 'day' ).toDate();
+  start = moment( start, DATE_FORMAT ).startOf( 'day' ).utc().toDate();
+  end = moment( end, DATE_FORMAT ).endOf( 'day' ).utc().toDate();
   nil = Number( nil );
 
   log.trace( 'Start: %s', start );
@@ -55,21 +69,29 @@ export default function*() {
       $gte: start,
       $lte: end,
     },
-    nil
+    nil: nil,
+    lang: lang,
   };
 
-  log.debug( { query }, 'Performing the query' );
+  log.debug( { query: query }, 'Performing the query' );
   let collection = getCollection();
-  let tweets = yield collection.find( query, 'id lang date author authorId text' );
+  let tweets = yield collection.find( query, 'id lang date author authorId text raw' );
+
+  let parsedTweets = _( tweets )
+  .filter( filterTweet )
+  .map( computeScore )
+  .sortByOrder( 'score', false )
+  .take( limit )
+  .value();
 
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
-    tweets,
+    tweets: parsedTweets,
   };
 
   this.body = response;
-}
+};
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

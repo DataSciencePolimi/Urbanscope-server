@@ -1,14 +1,14 @@
 'use strict';
 // Load system modules
-import path from 'path';
+let path = require( 'path' );
 
 // Load modules
-import moment from 'moment';
-import _ from 'lodash';
+let moment = require( 'moment' );
+let _ = require( 'lodash' );
 
 // Load my modules
-import logger from './';
-import { getCollection } from '../model/';
+let logger = require(  './' );
+let getCollection = require( '../model/' ).getCollection;
 // import nils from '../../config/nils.json';
 
 // Constant declaration
@@ -30,15 +30,13 @@ function now() {
 // Entry point
 
 // Exports
-export default function*() {
+module.exports = function* () {
   let qs = this.request.query;
-  let {
-    lang,
-    startDate: start,
-    endDate: end,
-    nil_ID: nil, // jshint ignore: line
-  } = qs;
-  log.trace( { qs }, 'Query string' );
+  let lang = qs.lang;
+  let start = qs.startDate;
+  let end = qs.endDate;
+  let nil = qs.nil_ID; // jshint ignore: line
+  log.trace( { qs: qs }, 'Query string' );
 
   // Default values
   lang = lang || 'it';
@@ -69,13 +67,13 @@ export default function*() {
     query.lang = 'en';
   } else if( lang==='other' ) {
     query.lang = {
-      $nin: [ 'it', 'en' ],
+      $nin: [ 'it', 'en', 'und' ],
     };
   }
 
   // Narrow by NIL (if present)
   if( nil ) {
-    let nilList = nil.split( ',' ).map( nil => Number(nil) );
+    let nilList = nil.split( ',' ).map( Number );
 
     query.nil = {
       $in: nilList,
@@ -90,26 +88,25 @@ export default function*() {
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
-    lang,
+    lang: lang,
   };
 
   response.nils = _( data )
   .groupBy( 'nil' )
-  .map( ( tweets, nil ) => {
+  .map( function( tweets, nil ) {
     let langs = _.countBy( tweets, 'lang' );
     let value = tweets.length;
-    nil = Number( nil ); // Force conversion
 
     return {
-      langs,
-      nil,
-      value,
+      langs: langs,
+      nil: Number( nil ), // Force conversion
+      value: value,
     };
   } )
   .value();
 
   this.body = response;
-}
+};
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78
