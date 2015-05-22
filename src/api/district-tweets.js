@@ -82,7 +82,7 @@ module.exports = function* () {
   }
 
 
-  log.debug( { query }, 'Performing the query' );
+  log.debug( { query: query }, 'Performing the query' );
   let collection = getCollection();
   let data = yield collection.find( query, 'date lang id nil' );
 
