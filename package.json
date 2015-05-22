@@ -4,16 +4,17 @@
   "description": "UrbanScope Server",
   "main": "server.js",
   "author": "Volox",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "start": "node server.js | bunyan -o short",
-    "server": "node server.js | bunyan -o short",
-    "compile": "gulp compile",
-    "watch": "gulp watch",
-    "postinstall": "gulp compile"
+    "server": "node server.js | bunyan -o short"
   },
+  "engines": {
+    "node": ">=0.11"
+  },
+  "engineStrict": true,
   "dependencies": {
-    "babel-runtime": "5.x",
     "bluebird": "2.x",
     "bunyan": "1.x",
     "co": "4.x",
@@ -24,10 +25,5 @@
     "lodash": "3.x",
     "moment": "2.x",
     "monk": "1.x"
-  },
-  "devDependencies": {
-    "gulp": "3.x",
-    "gulp-babel": "5.x",
-    "gulp-sourcemaps": "1.x"
   }
 }
