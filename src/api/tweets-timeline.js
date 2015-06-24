@@ -7,20 +7,17 @@ let _ = require( 'lodash' );
 let moment = require( 'moment' );
 
 // Load my modules
-let logger = require( './' );
+let logger = require( './' ).logger;
 let getCollection = require( '../model/' ).getCollection;
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
-const DATE_FORMAT = 'YYYY-MM-DD';
+const DATE_FORMAT = require( './' ).DATE_FORMAT;
 
 // Module variables declaration
 let log = logger.child( { endpoint: ENDPOINT } );
 
 // Module functions declaration
-function now() {
-  return moment().format( DATE_FORMAT );
-}
 
 // Module class declaration
 
@@ -30,47 +27,18 @@ function now() {
 
 // Exports
 module.exports = function* () {
-  let qs = this.request.query;
-  let lang = qs.lang;
-  let start = qs.startDate;
-  let end = qs.endDate;
-  log.trace( { qs: qs }, 'Query string' );
+  let query = this.api.query;
+  let params = this.api.params;
+  let start = params.start;
+  let end = params.end;
+  let lang = params.lang;
 
-  // Default values
-  lang = lang || 'it';
-  start = start || now();
-  end = end || now();
-
-  lang = lang.toLowerCase();
-  start = moment.utc( start, DATE_FORMAT ).startOf( 'day' ).toDate();
-  end = moment.utc( end, DATE_FORMAT ).endOf( 'day' ).toDate();
-
-  log.trace( 'Lang: %s', lang );
-  log.trace( 'Start: %s', start );
-  log.trace( 'End: %s', end );
-
-  let query = {
-    source: 'twitter',
-    date: {
-      $gte: start,
-      $lte: end,
-    },
-  };
-
-  // Narrow by language
-  if( lang==='it' ) {
-    query.lang = 'it';
-  } else if( lang==='en' ) {
-    query.lang = 'en';
-  } else if( lang==='other' ) {
-    query.lang = {
-      $nin: [ 'it', 'en', 'und' ],
-    };
-  }
+  // Remove Nil filter
+  delete query.nil;
 
   log.debug( { query: query }, 'Performing the query' );
   let collection = getCollection();
-  let data = yield collection.find( query, 'date lang' );
+  let data = yield collection.find( query, 'date lang raw.retweeted' );
 
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
@@ -89,9 +57,6 @@ module.exports = function* () {
     };
   } )
   .value();
-
-
-
 
 
   response.timeline = timeline;

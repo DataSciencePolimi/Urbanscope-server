@@ -10,13 +10,14 @@ let bunyan = require( 'bunyan' );
 
 // Load my modules
 let serverConfig = require( '../config/server.json' );
-let districtAnomaly = require( './api/district-anomaly' );
-let topAnomaly = require( './api/top-anomaly' );
-let districtTweets = require( './api/district-tweets' );
-let timelineTweets = require( './api/timeline-tweets' );
-let textTweets = require( './api/text-tweets' );
+let anomalyDistrict = require( './api/anomaly-district' );
+let anomalyTop = require( './api/anomaly-top' );
+let tweetsDistrict = require( './api/tweets-district' );
+let tweetsTimeline = require( './api/tweets-timeline' );
+let tweetsText = require( './api/tweets-text' );
 let openMongo = require( './model/' ).open;
 let closeMongo = require( './model/' ).close;
+let apiMiddleware = require( './api/' ).apiMiddleware;
 
 
 // Constant declaration
@@ -31,6 +32,20 @@ let log = bunyan.createLogger( {
 
 
 // Module functions declaration
+function* checkForError( next ) {
+  try {
+    yield next;
+    if( this.response.status===404 && !this.response.body ) {
+      this.throw( 404 );
+    }
+  } catch( err ) {
+    log.error( err, 'Got error' );
+    this.app.emit( 'error', err, this );
+    this.body = {
+      error: err.message,
+    };
+  }
+}
 
 // Module class declaration
 
@@ -50,17 +65,20 @@ co( function*() {
   app.use( cors() );
 
   // Add endpoints
-  let router = new Router( app );
+  let apiRoutes = new Router( app );
 
-  router.get( '/anomaly/district', districtAnomaly );
-  router.get( '/anomaly/top', topAnomaly );
-  router.get( '/tweets/district', districtTweets );
-  router.get( '/tweets/timeline', timelineTweets );
-  router.get( '/tweets/text', textTweets );
+  apiRoutes.use( checkForError );
+  apiRoutes.use( apiMiddleware );
+
+  apiRoutes.get( '/anomaly/district', anomalyDistrict );
+  apiRoutes.get( '/anomaly/top', anomalyTop );
+  apiRoutes.get( '/tweets/district', tweetsDistrict );
+  apiRoutes.get( '/tweets/timeline', tweetsTimeline );
+  apiRoutes.get( '/tweets/text', tweetsText );
 
   // Add the router to the Koa Application
-  app.use( router.routes() );
-  app.use( router.allowedMethods() );
+  app.use( apiRoutes.routes() );
+  app.use( apiRoutes.allowedMethods() );
 
   // Start server
   let port = serverConfig.port;

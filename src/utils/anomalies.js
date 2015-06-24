@@ -2,12 +2,14 @@
 // Load system modules
 
 // Load modules
-let _  = require( 'lodash' );
+let bunyan = require( 'bunyan' );
+let _ = require( 'lodash' );
 
 // Load my modules
 
 // Constant declaration
 const GREY_THRESHOLD = 6;
+/*
 const NILS_TO_USE = [
   1,
   2,
@@ -28,8 +30,14 @@ const NILS_TO_USE = [
   69,
   71,
 ];
+*/
 
 // Module variables declaration
+let logger = bunyan.createLogger( {
+  name: 'anomalies',
+  level: 'trace',
+} );
+
 
 // Module functions declaration
 function q( i, data ) {
@@ -80,12 +88,11 @@ function thresholds( percentages ) {
     threshold4: threshold4,
   };
 }
-/*
 function filterNils( posts, nil ) {
-  // return posts.length>=GREY_THRESHOLD;
-  return _.contains( NILS_TO_USE, Number( nil ) );
+  logger.trace( 'Nil %s have %d posts', nil, posts.length );
+  return posts.length>=GREY_THRESHOLD;
+  // return _.contains( NILS_TO_USE, Number( nil ) );
 }
-*/
 function getLanguage( post ) {
   let lang = post.lang.toLowerCase();
   if( lang!=='it' && lang!=='en' ) {
@@ -93,6 +100,7 @@ function getLanguage( post ) {
   } else {
     return lang;
   }
+  // return lang;
 }
 function getLanguagesPercentage( posts ) {
   let length = posts.length;
@@ -106,15 +114,18 @@ function getLanguagesPercentage( posts ) {
 }
 
 function getNilAnomalies( posts, lang ) {
+  logger.trace( 'Posts[ %d ]: ', posts.length, posts );
 
   let languagePercentagePerNil = _( posts )
   // Group by nil
   .groupBy( 'nil' )
-  // Use only the provided NILS
-  .pick( NILS_TO_USE )
+  // Use only the non gray nils
+  .pick( filterNils )
   // Get the percentage of each language
   .mapValues( getLanguagesPercentage )
   .value();
+
+  logger.trace( 'languagePercentagePerNil: %j', languagePercentagePerNil );
 
   // Calculate the quartiles and the thresholds of the selected language
   let selectedLanguagePercentages = _( languagePercentagePerNil )
@@ -124,24 +135,29 @@ function getNilAnomalies( posts, lang ) {
   .sortBy()
   .value();
 
+  logger.trace( 'selectedLanguagePercentages: %j', selectedLanguagePercentages );
+
   let ths = thresholds( selectedLanguagePercentages );
   let t1 = ths.threshold1;
   let t2 = ths.threshold2;
   let t3 = ths.threshold3;
   let t4 = ths.threshold4;
 
+  logger.trace( 'ths: %j', ths );
 
   // Map the nil to the correct output
   return _( languagePercentagePerNil )
   .map( function( langs, nil ) {
     let selectedLanguagePercentage = langs[ lang ];
     let type;
-
+    /*
     if( selectedLanguagePercentage<=t1 ) {
       type = 'Percentuale molto bassa';
     } else if ( selectedLanguagePercentage>t1 && selectedLanguagePercentage<=t2 ) {
       type = 'Percentuale bassa';
-    } else if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
+    } else
+    */
+    if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
       type = 'Percentuale non anomala';
     } else if ( selectedLanguagePercentage>t3 && selectedLanguagePercentage<=t4 ) {
       type = 'Percentuale alta';
@@ -152,7 +168,7 @@ function getNilAnomalies( posts, lang ) {
     return {
       value: selectedLanguagePercentage,
       type: type,
-      nil_id: Number( nil ), // jshint ignore:line
+      nil_id: Number( nil ), // eslint-disable-line camelcase
     };
   } )
   .filter( 'type' )
@@ -168,7 +184,7 @@ function getNilAnomalies( posts, lang ) {
 
 // Exports
 module.exports.getNilAnomalies = getNilAnomalies;
-module.exports.NILS_TO_USE = NILS_TO_USE;
+// module.exports.NILS_TO_USE = NILS_TO_USE;
 
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

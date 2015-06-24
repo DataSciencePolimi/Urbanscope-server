@@ -7,27 +7,24 @@ let _ = require( 'lodash' );
 let moment = require( 'moment' );
 
 // Load my modules
-let logger = require( './' );
+let logger = require( './' ).logger;
 let getCollection = require( '../model/' ).getCollection;
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
-const DATE_FORMAT = 'YYYY-MM-DD';
+const DATE_FORMAT = require( './' ).DATE_FORMAT;
 
 // Module variables declaration
 let log = logger.child( { endpoint: ENDPOINT } );
 
 // Module functions declaration
-function now() {
-  return moment().format( DATE_FORMAT );
-}
 function filterTweet( tweet ) {
-  return !tweet.raw.possibly_sensitive; //jshint ignore:line
+  return !tweet.raw.possibly_sensitive && !tweet.raw.retweeted_status; // eslint-disable line camelcase
 }
 function computeScore( tweet ) {
   let newTweet = _.omit( tweet, 'raw' );
 
-  let score = tweet.raw.retweet_count + tweet.raw.favorite_count; // jshint ignore: line
+  let score = tweet.raw.retweet_count + tweet.raw.favorite_count; //  eslint-disable line camelcase
 
   newTweet.score = score;
   return newTweet;
@@ -41,39 +38,19 @@ function computeScore( tweet ) {
 
 // Exports
 module.exports = function* () {
-  let qs = this.request.query;
-  let start = qs.startDate;
-  let end = qs.endDate;
-  let nil = qs.nil_ID; // jshint ignore: line
-  let lang = qs.lang;
-  let limit = qs.limit;
-  log.trace( { qs: qs }, 'Query string' );
+  let query = this.api.query;
+  let params = this.api.params;
+  let start = params.start;
+  let end = params.end;
+  let limit = params.limit || 100;
+  let nil = params.nil || 1;
 
-  // Default values
-  lang = lang || 'it';
-  limit = limit || 100;
-  start = start || now();
-  end = end || now();
+  if( isNaN( Number( nil ) ) ) {
+    throw new Error( 'The "nil_ID" params must be an integer' );
+  }
 
-  start = moment( start, DATE_FORMAT ).startOf( 'day' ).utc().toDate();
-  end = moment( end, DATE_FORMAT ).endOf( 'day' ).utc().toDate();
-  nil = Number( nil );
+  query.nil = parseInt( nil, 10 );
 
-  log.trace( 'Start: %s', start );
-  log.trace( 'End: %s', end );
-  log.trace( 'Nil: %s', nil );
-
-  let query = {
-    source: 'twitter',
-    date: {
-      $gte: start,
-      $lte: end,
-    },
-    nil: nil,
-    lang: lang,
-  };
-
-  log.debug( { query: query }, 'Performing the query' );
   let collection = getCollection();
   let tweets = yield collection.find( query, 'id lang date author authorId text raw' );
 
@@ -87,6 +64,7 @@ module.exports = function* () {
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
+    nil_ID: Number( nil ), // eslint-disable-line camelcase
     tweets: parsedTweets,
   };
 
