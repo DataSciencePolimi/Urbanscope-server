@@ -34,6 +34,7 @@ module.exports = function*() {
   let lang = params.lang;
 
   let collection = getCollection();
+  delete query.lang;
   let data = yield collection.find( query, 'lang nil' );
 
   let response = {

@@ -40,6 +40,7 @@ module.exports = function* () {
 
   limit = Number( limit );
   let collection = getCollection();
+  delete query.lang;
   let data = yield collection.find( query, 'lang nil' );
 
 
