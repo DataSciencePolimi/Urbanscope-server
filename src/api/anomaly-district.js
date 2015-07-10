@@ -33,8 +33,11 @@ module.exports = function*() {
   let end = params.end;
   let lang = params.lang;
 
-  let collection = getCollection();
+  // Remove the lang filter
   delete query.lang;
+
+  log.trace( { query: query }, 'Final query' );
+  let collection = getCollection();
   let data = yield collection.find( query, 'lang nil' );
 
   let response = {

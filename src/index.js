@@ -10,14 +10,22 @@ let bunyan = require( 'bunyan' );
 
 // Load my modules
 let serverConfig = require( '../config/server.json' );
+
 let anomalyDistrict = require( './api/anomaly-district' );
 let anomalyTop = require( './api/anomaly-top' );
+
 let tweetsDistrict = require( './api/tweets-district' );
 let tweetsTimeline = require( './api/tweets-timeline' );
 let tweetsText = require( './api/tweets-text' );
+
+let callsDistrict = require( './api/calls-district' );
+let callsTimeline = require( './api/calls-timeline' );
+let callsList = require( './api/calls-list' );
+
 let openMongo = require( './model/' ).open;
 let closeMongo = require( './model/' ).close;
-let apiMiddleware = require( './api/' ).apiMiddleware;
+let tweetsApiMiddleware = require( './api/' ).tweetsApiMiddleware;
+let callsApiMiddleware = require( './api/' ).callsApiMiddleware;
 
 
 // Constant declaration
@@ -68,13 +76,21 @@ co( function*() {
   let apiRoutes = new Router( app );
 
   apiRoutes.use( checkForError );
-  apiRoutes.use( apiMiddleware );
 
-  apiRoutes.get( '/anomaly/district', anomalyDistrict );
-  apiRoutes.get( '/anomaly/top', anomalyTop );
-  apiRoutes.get( '/tweets/district', tweetsDistrict );
-  apiRoutes.get( '/tweets/timeline', tweetsTimeline );
-  apiRoutes.get( '/tweets/text', tweetsText );
+  // Anomalies
+  apiRoutes.get( '/anomaly/district', tweetsApiMiddleware, anomalyDistrict );
+  apiRoutes.get( '/anomaly/top', tweetsApiMiddleware, anomalyTop );
+
+  // Tweets
+  apiRoutes.get( '/tweets/district', tweetsApiMiddleware, tweetsDistrict );
+  apiRoutes.get( '/tweets/timeline', tweetsApiMiddleware, tweetsTimeline );
+  apiRoutes.get( '/tweets/text', tweetsApiMiddleware, tweetsText );
+
+  // Calls
+  apiRoutes.get( '/calls/district', callsApiMiddleware, callsDistrict );
+  apiRoutes.get( '/calls/timeline', callsApiMiddleware, callsTimeline );
+  apiRoutes.get( '/calls/list', callsApiMiddleware, callsList );
+
 
   // Add the router to the Koa Application
   app.use( apiRoutes.routes() );

@@ -34,6 +34,8 @@ module.exports = function* () {
   let end = params.end;
   let lang = params.lang;
 
+
+  log.trace( { query: query }, 'Final query' );
   let collection = getCollection();
   let data = yield collection.find( query, 'date lang id nil' );
 

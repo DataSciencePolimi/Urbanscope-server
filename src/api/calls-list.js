@@ -9,6 +9,7 @@ let moment = require( 'moment' );
 // Load my modules
 let logger = require( './' ).logger;
 let getCollection = require( '../model/' ).getCollection;
+// import nils from '../../config/nils.json';
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -18,6 +19,9 @@ const DATE_FORMAT = require( './' ).DATE_FORMAT;
 let log = logger.child( { endpoint: ENDPOINT } );
 
 // Module functions declaration
+function getDay( call ) {
+  return moment( call.date ).format( DATE_FORMAT );
+}
 
 // Module class declaration
 
@@ -31,35 +35,41 @@ module.exports = function* () {
   let params = this.api.params;
   let start = params.start;
   let end = params.end;
-  let lang = params.lang;
+  let nil = params.nil || [];
 
-  // Remove Nil filter
-  delete query.nil;
+  // Get the nil
+  nil = nil[0] || 1;
+
+  // Get the limit
+  let limit = this.request.query.limit;
+  limit = limit || 100;
+  limit = parseInt( limit, 10 );
+
+  // Add the NIL filter
+  query.nil = nil;
 
   log.trace( { query: query }, 'Final query' );
-  let collection = getCollection();
-  let data = yield collection.find( query, 'date lang raw.retweeted' );
+  let collection = getCollection( 'telecom' );
+  let data = yield collection.find( query, { limit: limit } );
 
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
-    lang: lang,
+    nil_ID: nil,
+    limit: limit,
   };
 
-  let timeline = _( data )
-  .groupBy( function( post ) {
-    return moment( post.date ).format( 'YYYY-MM' );
-  } )
-  .map( function( posts, date ) {
+  response.calls = _( data )
+  .map( function( call ) {
     return {
-      date: date,
-      value: posts.length,
+      date: getDay( call ),
+      in: call.callIn,
+      out: call.callOut,
+      country: call.country,
     };
   } )
   .value();
 
-
-  response.timeline = timeline;
   this.body = response;
 };
 

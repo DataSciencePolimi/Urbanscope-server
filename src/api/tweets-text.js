@@ -51,6 +51,7 @@ module.exports = function* () {
 
   query.nil = parseInt( nil, 10 );
 
+  log.trace( { query: query }, 'Final query' );
   let collection = getCollection();
   let tweets = yield collection.find( query, 'id lang date author authorId text raw' );
 

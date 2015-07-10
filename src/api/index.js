@@ -22,8 +22,61 @@ let logger = bunyan.createLogger( {
 function now() {
   return moment().format( DATE_FORMAT );
 }
-function* apiMiddleware( next ) {
-  let log = logger.child( { component: 'params' } );
+function* callsApiMiddleware( next ) {
+  let log = logger.child( { component: 'calls params' } );
+  // Get query parameters
+  let qs = this.request.query;
+  let start = qs.startDate;
+  let end = qs.endDate;
+  let nil = qs.nil_ID; // eslint-disable-line camelcase
+  log.trace( { qs: qs }, 'Query string' );
+
+  // Default values
+  start = start || now();
+  end = end || now();
+
+  start = moment.utc( start, DATE_FORMAT ).startOf( 'day' ).toDate();
+  end = moment.utc( end, DATE_FORMAT ).endOf( 'day' ).toDate();
+
+  log.trace( 'Start: %s', start );
+  log.trace( 'End: %s', end );
+  log.trace( 'Nil: %s', nil );
+
+  let query = {
+    date: {
+      $gte: start,
+      $lte: end,
+    },
+  };
+
+  // Narrow by NIL (if present)
+  if( nil ) {
+    let nilList = _( nil.split( ',' ) )
+    .map( Number )
+    .filter( function( num ) {
+      return num>0;
+    } )
+    .value();
+
+    query.nil = {
+      $in: nilList,
+    };
+  }
+
+  log.debug( { query: query }, 'Performing the query' );
+  this.api = {
+    params: {
+      start: start,
+      end: end,
+      nil: nil,
+    },
+    query: query
+  };
+
+  yield next;
+}
+function* tweetsApiMiddleware( next ) {
+  let log = logger.child( { component: 'tweets params' } );
   // Get query parameters
   let qs = this.request.query;
   let start = qs.startDate;
@@ -105,7 +158,8 @@ function* apiMiddleware( next ) {
 
 // Exports
 module.exports.logger = logger;
-module.exports.apiMiddleware = apiMiddleware;
+module.exports.tweetsApiMiddleware = tweetsApiMiddleware;
+module.exports.callsApiMiddleware = callsApiMiddleware;
 module.exports.DATE_FORMAT = DATE_FORMAT;
 
 
