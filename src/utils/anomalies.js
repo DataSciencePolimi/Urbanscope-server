@@ -157,6 +157,9 @@ function getNonGrayNils( posts ) {
   .map( function( numPosts, nil ) {
     return Number( nil );
   } )
+  .filter( function( nil ) {
+    return !isNaN( nil )
+  } )
   .value();
 }
 
