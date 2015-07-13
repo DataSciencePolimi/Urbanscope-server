@@ -8,7 +8,11 @@
   <script type="text/javascript" src="//code.highcharts.com/mapdata/custom/world-highres.js"></script>
   <script>
     function getData( type, start, end ) {
-      return $.getJSON( '/calls/total', {
+      var url = this.location.pathname.split( '/' );
+      url.pop();;
+      url.push( 'total' );
+
+      return $.getJSON( url.join( '/' ), {
         startDate: start,
         endDate: end,
       } )
