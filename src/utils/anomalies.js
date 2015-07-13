@@ -8,7 +8,7 @@ let _ = require( 'lodash' );
 // Load my modules
 
 // Constant declaration
-const GREY_THRESHOLD = 6;
+const GREY_THRESHOLD = 20;
 /*
 const NILS_TO_USE = [
   1,
@@ -40,6 +40,7 @@ let logger = bunyan.createLogger( {
 
 
 // Module functions declaration
+/*
 function q( i, data ) {
   let Fi = i/4; // QUARTILE so we use: 4
   let n = data.length;
@@ -57,18 +58,48 @@ function q( i, data ) {
 
   return val;
 }
-function quartiles( percentages ) {
-  let quartile1 = q( 1, percentages );
-  let quartile2 = q( 2, percentages );
-  let quartile3 = q( 3, percentages );
-  let quartile4 = q( 4, percentages );
+*/
+function q( i, data ) {
+  let N = data.length;
+  let val = (i/4)*(N+1);
 
-  return {
+  if( Math.floor( val )===val ) { // Intero
+    return data[ val ];
+  } else { // Non intero
+    let int = Math.floor( val );
+    let dec = val - int;
+
+    return data[ int ] + ( data[ int+1 ] * dec );
+  }
+}
+function q1( data ) {
+  return q( 1, data );
+}
+function median( data ) {
+  return q( 2, data );
+}
+function q3( data ) {
+  return q( 3, data );
+}
+function q4( data ) {
+  return q( 4, data );
+}
+let q2 = median;
+function quartiles( percentages ) {
+  let quartile1 = q1( percentages );
+  let quartile2 = q2( percentages );
+  let quartile3 = q3( percentages );
+  // let quartile4 = q4( percentages );
+
+  let quartiles = {
     quartile1: quartile1,
     quartile2: quartile2,
     quartile3: quartile3,
-    quartile4: quartile4,
+    // quartile4: quartile4,
   };
+  logger.trace( { quartiles: quartiles }, 'Quartiles' );
+
+  return quartiles;
 }
 function thresholds( percentages ) {
   let quarts = quartiles( percentages );
@@ -81,12 +112,15 @@ function thresholds( percentages ) {
   let threshold3 = q3;
   let threshold4 = q3+1.5*(q3-q1);
 
-  return {
+  let ths = {
     threshold1: threshold1,
     threshold2: threshold2,
     threshold3: threshold3,
     threshold4: threshold4,
   };
+
+  logger.trace( { ths: ths }, 'Thresholds' );
+  return ths;
 }
 function filterNils( posts, nil ) {
   logger.trace( 'Nil %s have %d posts', nil, posts.length );
@@ -113,29 +147,48 @@ function getLanguagesPercentage( posts ) {
   .value();
 }
 
+function getNonGrayNils( posts ) {
+  return _( posts )
+  .groupBy( 'nil' )
+  .mapValues( 'length' )
+  .pick( function( posts ) {
+    return posts>=GREY_THRESHOLD;
+  } )
+  .map( function( numPosts, nil ) {
+    return Number( nil );
+  } )
+  .value();
+}
+
 function getNilAnomalies( posts, lang ) {
-  logger.trace( 'Posts[ %d ]: ', posts.length, posts );
+  logger.trace( 'Posts[ %d ]: ', posts.length/*, posts*/ );
+
+  let nonGrayNils = getNonGrayNils( posts );
+  logger.trace( { nonGrayNils: nonGrayNils }, 'Non gray nils' );
 
   let languagePercentagePerNil = _( posts )
   // Group by nil
   .groupBy( 'nil' )
   // Use only the non gray nils
-  .pick( filterNils )
+  .pick( nonGrayNils )
   // Get the percentage of each language
   .mapValues( getLanguagesPercentage )
   .value();
 
-  logger.trace( 'languagePercentagePerNil: %j', languagePercentagePerNil );
+  logger.trace( { langPercPerNil: languagePercentagePerNil }, 'languagePercentagePerNil' );
 
   // Calculate the quartiles and the thresholds of the selected language
   let selectedLanguagePercentages = _( languagePercentagePerNil )
   // Get the percentages for the selected language
   .map( lang )
+  .filter( function( perc ) {
+    return !isNaN( perc )
+  } )
   // Sort ascending
   .sortBy()
   .value();
 
-  logger.trace( 'selectedLanguagePercentages: %j', selectedLanguagePercentages );
+  logger.trace( { selLangPerc: selectedLanguagePercentages }, 'selectedLanguagePercentages "%s"', lang );
 
   let ths = thresholds( selectedLanguagePercentages );
   let t1 = ths.threshold1;
@@ -143,21 +196,18 @@ function getNilAnomalies( posts, lang ) {
   let t3 = ths.threshold3;
   let t4 = ths.threshold4;
 
-  logger.trace( 'ths: %j', ths );
 
   // Map the nil to the correct output
   return _( languagePercentagePerNil )
   .map( function( langs, nil ) {
     let selectedLanguagePercentage = langs[ lang ];
     let type;
-    /*
+
     if( selectedLanguagePercentage<=t1 ) {
       type = 'Percentuale molto bassa';
     } else if ( selectedLanguagePercentage>t1 && selectedLanguagePercentage<=t2 ) {
       type = 'Percentuale bassa';
-    } else
-    */
-    if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
+    } else if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
       type = 'Percentuale non anomala';
     } else if ( selectedLanguagePercentage>t3 && selectedLanguagePercentage<=t4 ) {
       type = 'Percentuale alta';
@@ -171,7 +221,7 @@ function getNilAnomalies( posts, lang ) {
       nil_id: Number( nil ), // eslint-disable-line camelcase
     };
   } )
-  .filter( 'type' )
+  // .filter( 'type' )
   .value();
 }
 
@@ -184,6 +234,7 @@ function getNilAnomalies( posts, lang ) {
 
 // Exports
 module.exports.getNilAnomalies = getNilAnomalies;
+module.exports.getNonGrayNils = getNonGrayNils;
 // module.exports.NILS_TO_USE = NILS_TO_USE;
 
 

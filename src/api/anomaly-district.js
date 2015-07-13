@@ -9,6 +9,7 @@ let moment = require( 'moment' );
 let logger = require( './' ).logger;
 let getCollection = require( '../model/' ).getCollection;
 let getNilAnomalies = require( '../utils/anomalies' ).getNilAnomalies;
+let getNonGrayNils = require( '../utils/anomalies' ).getNonGrayNils;
 
 // Constant declaration
 const ENDPOINT = path.basename( __filename, '.js' );
@@ -44,6 +45,7 @@ module.exports = function*() {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
     lang: lang,
+    nonGray: getNonGrayNils( data ),
     nils: getNilAnomalies( data, lang ),
   };
 

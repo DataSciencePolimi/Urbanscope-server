@@ -21,6 +21,8 @@ let tweetsText = require( './api/tweets-text' );
 let callsDistrict = require( './api/calls-district' );
 let callsTimeline = require( './api/calls-timeline' );
 let callsList = require( './api/calls-list' );
+let callsTotal = require( './api/calls-total' );
+let callsWorld = require( './api/calls-world' );
 
 let openMongo = require( './model/' ).open;
 let closeMongo = require( './model/' ).close;
@@ -90,6 +92,8 @@ co( function*() {
   apiRoutes.get( '/calls/district', callsApiMiddleware, callsDistrict );
   apiRoutes.get( '/calls/timeline', callsApiMiddleware, callsTimeline );
   apiRoutes.get( '/calls/list', callsApiMiddleware, callsList );
+  apiRoutes.get( '/calls/total', callsApiMiddleware, callsTotal );
+  apiRoutes.get( '/calls/world', callsWorld );
 
 
   // Add the router to the Koa Application

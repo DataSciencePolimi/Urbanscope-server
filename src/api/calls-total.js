@@ -19,10 +19,10 @@ const DATE_FORMAT = require( './' ).DATE_FORMAT;
 let log = logger.child( { endpoint: ENDPOINT } );
 
 // Module functions declaration
-
 function getDay( call ) {
   return moment( call.date ).format( 'YYYY-MM' );
 }
+
 // Module class declaration
 
 // Module initialization (at first load)
@@ -45,16 +45,22 @@ module.exports = function* () {
     endDate: moment( end ).format( DATE_FORMAT ),
   };
 
-  response.timeline = _( data )
+  response.calls = _( data )
   .groupBy( getDay )
   .map( function( calls, date ) {
-    let callIn = _.sum( calls, 'callIn' );
-    let callOut = _.sum( calls, 'callOut' );
+    let countries = _( calls )
+    .groupBy( 'country' )
+    .mapValues( function( data ) {
+      return {
+        in: _.sum( data, 'callIn' ),
+        out: _.sum( data, 'callOut' ),
+      }
+    } )
+    .value();
 
     return {
       date: date,
-      in: callIn,
-      out: callOut,
+      countries: countries,
     };
   } )
   .value();
