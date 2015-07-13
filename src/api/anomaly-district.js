@@ -45,7 +45,7 @@ module.exports = function*() {
     startDate: moment( start ).format( DATE_FORMAT ),
     endDate: moment( end ).format( DATE_FORMAT ),
     lang: lang,
-    nonGray: getNonGrayNils( data ),
+    nonTransparent: getNonGrayNils( data ),
     nils: getNilAnomalies( data, lang ),
   };
 
