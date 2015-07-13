@@ -8,7 +8,7 @@ let _ = require( 'lodash' );
 // Load my modules
 
 // Constant declaration
-const GREY_THRESHOLD = 20;
+const GREY_THRESHOLD = 100;
 /*
 const NILS_TO_USE = [
   1,
