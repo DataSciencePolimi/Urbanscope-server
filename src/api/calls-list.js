@@ -39,6 +39,7 @@ module.exports = function* () {
 
   // Get the nil
   nil = nil[0] || 1;
+  nil = Number( nil );
 
   // Get the limit
   let limit = this.request.query.limit;
