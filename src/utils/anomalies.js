@@ -128,7 +128,9 @@ function filterNils( posts, nil ) {
   // return _.contains( NILS_TO_USE, Number( nil ) );
 }
 function getLanguage( post ) {
-  let lang = post.lang.toLowerCase();
+  let lang = post.lang || 'und';
+  lang = lang.toLowerCase()
+
   if( lang!=='it' && lang!=='en' ) {
     return 'other';
   } else {
