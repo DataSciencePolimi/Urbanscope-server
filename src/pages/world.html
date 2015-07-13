@@ -9,7 +9,7 @@
   <script>
     function getData( type, start, end ) {
       var url = this.location.pathname.split( '/' );
-      url.pop();;
+      url.pop();
       url.push( 'total' );
 
       return $.getJSON( url.join( '/' ), {
@@ -34,7 +34,11 @@
     function drawMap( type, start, end ) {
       getData( type, start, end )
       .then( function(data) {
+        $( '#map' ).empty();
         $( '#map' ).highcharts( 'Map', {
+          title: {
+            text: 'Telecom '+type+'going phone calls'
+          },
           mapNavigation: {
             enabled: true
           },
