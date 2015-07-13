@@ -208,11 +208,15 @@ function getNilAnomalies( posts, lang ) {
     let selectedLanguagePercentage = langs[ lang ];
     let type;
 
+    /*
     if( selectedLanguagePercentage<=t1 ) {
       type = 'Percentuale molto bassa';
     } else if ( selectedLanguagePercentage>t1 && selectedLanguagePercentage<=t2 ) {
       type = 'Percentuale bassa';
-    } else if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
+    } else
+    if ( selectedLanguagePercentage>t2 && selectedLanguagePercentage<=t3 ) {
+    */
+    if ( selectedLanguagePercentage<=t3 ) {
       type = 'Percentuale non anomala';
     } else if ( selectedLanguagePercentage>t3 && selectedLanguagePercentage<=t4 ) {
       type = 'Percentuale alta';
