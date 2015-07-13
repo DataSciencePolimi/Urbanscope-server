@@ -6,17 +6,99 @@
   <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
   <script type="text/javascript" src="//code.highcharts.com/maps/highmaps.js"></script>
   <script type="text/javascript" src="//code.highcharts.com/mapdata/custom/world-highres.js"></script>
-
 </head>
 <body>
   <div id="map"></div>
   <script>
-    $( '#map' ).highcharts( 'Map', {
-      title: {
-        text: 'Wold'
-      },
-      mapData: Highcharts.maps["custom/world-highres"]
-    } );
+    var type = 'in';
+    var start = '2015-04-01';
+    var end = '2015-05-1';
+
+    $.getJSON( '/calls/total', {
+      startDate: start,
+      endDate: end,
+    } )
+    .then( function( data ) {
+      var calls = data.calls[0];
+
+      return $.map( calls.countries, function( val, key ) {
+        return {
+          code: key,
+          value: val[ type ],
+        };
+      } )
+      .filter( function( v ) {
+        return v.code!=='IT' && v.code!=='null';
+      } );
+    } )
+    .then( function(data) {
+      $.each( data, function( k, v ) {
+        console.log( v )
+      } );
+      $( '#map' ).highcharts( 'Map', {
+        title: {
+          text: 'Wold'
+        },
+        mapNavigation: {
+          enabled: true
+        },
+        legend: {
+          title: {
+            text: 'Calls',
+            style: {
+              color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+            }
+          },
+          align: 'left',
+          verticalAlign: 'bottom',
+          floating: true,
+          layout: 'vertical',
+          valueDecimals: 0,
+          backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || 'rgba(255, 255, 255, 0.85)',
+          symbolRadius: 0,
+          symbolHeight: 14
+        },
+        colorAxis: {
+          dataClasses: [
+            {
+              to: 10
+            },
+            {
+              from: 10,
+              to: 50
+            },
+            {
+              from: 50,
+              to: 100
+            },
+            {
+              from: 100,
+              to: 500
+            },
+            {
+              from: 500,
+              to: 1000
+            },
+            {
+              from: 1000,
+              to: 5000
+            },
+            {
+              from: 5000,
+            }
+          ]
+        },
+        series: [
+          {
+            name: 'Total calls',
+            data: data,
+            animation: true,
+            joinBy: [ 'iso-a2', 'code' ],
+            mapData: Highcharts.maps["custom/world-highres"]
+          }
+        ]
+      } );
+    } )
   </script>
 </body>
 </html>
