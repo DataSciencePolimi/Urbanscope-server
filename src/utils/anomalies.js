@@ -40,7 +40,6 @@ let logger = bunyan.createLogger( {
 
 
 // Module functions declaration
-/*
 function q( i, data ) {
   let Fi = i/4; // QUARTILE so we use: 4
   let n = data.length;
@@ -58,7 +57,7 @@ function q( i, data ) {
 
   return val;
 }
-*/
+/*
 function q( i, data ) {
   let N = data.length;
   let val = (i/4)*(N+1);
@@ -72,6 +71,7 @@ function q( i, data ) {
     return data[ int ] + ( data[ int+1 ] * dec );
   }
 }
+*/
 function q1( data ) {
   return q( 1, data );
 }
