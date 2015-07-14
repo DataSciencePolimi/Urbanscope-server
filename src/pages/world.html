@@ -7,6 +7,24 @@
   <script type="text/javascript" src="//code.highcharts.com/maps/highmaps.js"></script>
   <script type="text/javascript" src="//code.highcharts.com/mapdata/custom/world-highres.js"></script>
   <script>
+    function q( i, data ) {
+      var Fi = i/10; // DECILI so we use: 10
+      var n = data.length;
+      var int = Math.floor;
+
+      var prod = n*Fi;
+      var val;
+
+      // Check if the product is an integer
+      if( int( prod )===prod ) {
+        val = (data[ prod-1 ] + data[ prod ])/2;
+      } else {
+        val = data[ int( prod ) ];
+      }
+
+      return val;
+    }
+
     function getData( type, start, end ) {
       var url = this.location.pathname.split( '/' );
       url.pop();
@@ -31,9 +49,48 @@
       } )
     }
 
+    function getDeciles( data ) {
+      var deciles = [];
+      for( var i=1; i<10; i++ ) {
+        deciles[i-1] = q( i, data );
+      }
+      return deciles;
+    }
+
+    function getThresholds( data ) {
+      var deciles = getDeciles( data );
+      var classes = [];
+
+      classes.push( {
+        to: deciles[ 0 ],
+      } );
+      for( var i=1; i<deciles.length; i++ ) {
+        classes.push( {
+          from: deciles[i-1],
+          to: deciles[i],
+        } );
+      }
+      classes.push( {
+        from: deciles[ deciles.length-1 ],
+      } );
+
+      return classes;
+    }
+
+    function cmp( a, b ) {
+      return a-b;
+    }
+
     function drawMap( type, start, end ) {
       getData( type, start, end )
       .then( function(data) {
+
+        var sortedValues = $.map( data, function( d ) {
+          return d.value;
+        } ).sort( cmp );
+
+        console.log( sortedValues );
+
         $( '#map' ).empty();
         $( '#map' ).highcharts( 'Map', {
           title: {
@@ -59,34 +116,7 @@
             symbolHeight: 14
           },
           colorAxis: {
-            dataClasses: [
-              {
-                to: 10
-              },
-              {
-                from: 10,
-                to: 50
-              },
-              {
-                from: 50,
-                to: 100
-              },
-              {
-                from: 100,
-                to: 500
-              },
-              {
-                from: 500,
-                to: 1000
-              },
-              {
-                from: 1000,
-                to: 5000
-              },
-              {
-                from: 5000,
-              }
-            ]
+            dataClasses: getThresholds( sortedValues ),
           },
           series: [
             {
