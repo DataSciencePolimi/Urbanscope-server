@@ -2,8 +2,8 @@
 <html>
 <head>
   <title>Telecom World Map</title>
-  <style></style>
   <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <!-- <script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script> -->
   <script type="text/javascript" src="//code.highcharts.com/maps/highmaps.js"></script>
   <script type="text/javascript" src="//code.highcharts.com/mapdata/custom/world-highres.js"></script>
   <script>
@@ -25,19 +25,52 @@
       return val;
     }
 
-    function getData( type, start, end ) {
+    function getTop( type, start, end ) {
+      var url = this.location.pathname.split( '/' );
+      url.pop();
+      url.push( 'top' );
+      var totalUrl = url.join( '/' );
+
+      return $.getJSON( totalUrl, {
+        startDate: start,
+        endDate: end,
+        orderBy: type,
+      } )
+      .then( function( data ) {
+        return $.grep( data.calls, function( v ) {
+          return v.country!=='IT';
+        } );
+      } );
+    }
+    function getTotal( type, start, end ) {
       var url = this.location.pathname.split( '/' );
       url.pop();
       url.push( 'total' );
+      var totalUrl = url.join( '/' );
 
-      return $.getJSON( url.join( '/' ), {
+      return $.getJSON( totalUrl, {
         startDate: start,
         endDate: end,
       } )
       .then( function( data ) {
-        var calls = data.calls[0];
+        var montlyCalls = data.calls;
+        var calls = {};
 
-        return $.map( calls.countries, function( val, key ) {
+        $.each( montlyCalls, function( i, v ) {
+          $.each( v.countries, function( key, val ) {
+            calls[ key ] = calls[ key ] || {
+              in: 0,
+              out: 0,
+              total: 0,
+            }
+            calls[ key ].in += val.in;
+            calls[ key ].out += val.out;
+            calls[ key ].total += val.total;
+          } );
+        } )
+
+
+        return $.map( calls, function( val, key ) {
           return {
             code: key,
             value: val[ type ],
@@ -81,15 +114,52 @@
       return a-b;
     }
 
+    function drawTop( type, start, end ) {
+      getTop( type, start, end )
+      .then( function(data) {
+
+        var categories = $.map( data, function( d ) {
+          return d.country;
+        } );
+        var values = $.map( data, function( d ) {
+          return d[ type ];
+        } );
+
+        $( '#top' ).empty();
+        $( '#top' ).highcharts( {
+          title: {
+            text: 'Telecom top countries'
+          },
+          chart: {
+            type: 'column'
+          },
+          yAxis: {
+            min: 0,
+            title: {
+              text: 'Calls'
+            }
+          },
+          xAxis: {
+            categories: categories,
+          },
+          series: [
+            {
+              name: 'Top called countries',
+              data: values,
+            }
+          ]
+        } );
+      } );
+    }
     function drawMap( type, start, end ) {
-      getData( type, start, end )
+      getTotal( type, start, end )
       .then( function(data) {
 
         var sortedValues = $.map( data, function( d ) {
           return d.value;
         } ).sort( cmp );
 
-        console.log( sortedValues );
+        // console.log( sortedValues );
 
         $( '#map' ).empty();
         $( '#map' ).highcharts( 'Map', {
@@ -139,6 +209,7 @@
     <select id="type">
       <option value="in">In</option>
       <option value="out">Out</option>
+      <option value="total">Total</option>
     </select>
 
 
@@ -153,6 +224,7 @@
   </div>
   <hr>
   <div id="map"></div>
+  <div id="top"></div>
 
   <script>
     var $type = $( '#type' );
@@ -166,6 +238,7 @@
       var end = $end.val();
 
       drawMap( type, start, end );
+      drawTop( type, start, end );
     } );
 
 
