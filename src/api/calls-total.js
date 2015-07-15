@@ -51,9 +51,14 @@ module.exports = function* () {
     let countries = _( calls )
     .groupBy( 'country' )
     .mapValues( function( data ) {
+      let callIn = _.sum( data, 'callIn' );
+      let callOut = _.sum( data, 'callOut' );
+      let total = callIn+callOut;;
+
       return {
-        in: _.sum( data, 'callIn' ),
-        out: _.sum( data, 'callOut' ),
+        in: callIn,
+        out: callOut,
+        total: total,
       }
     } )
     .value();

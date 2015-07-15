@@ -20,9 +20,10 @@ let tweetsText = require( './api/tweets-text' );
 
 let callsDistrict = require( './api/calls-district' );
 let callsTimeline = require( './api/calls-timeline' );
-let callsList = require( './api/calls-list' );
-let callsTotal = require( './api/calls-total' );
 let callsWorld = require( './api/calls-world' );
+let callsTotal = require( './api/calls-total' );
+let callsList = require( './api/calls-list' );
+let callsTop = require( './api/calls-top' );
 
 let openMongo = require( './model/' ).open;
 let closeMongo = require( './model/' ).close;
@@ -93,6 +94,7 @@ co( function*() {
   apiRoutes.get( '/calls/timeline', callsApiMiddleware, callsTimeline );
   apiRoutes.get( '/calls/list', callsApiMiddleware, callsList );
   apiRoutes.get( '/calls/total', callsApiMiddleware, callsTotal );
+  apiRoutes.get( '/calls/top', callsApiMiddleware, callsTop );
   apiRoutes.get( '/calls/world', callsWorld );
 
 
