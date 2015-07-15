@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Telecom World Map</title>
+  <title>Phone calls World Map</title>
   <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
   <!-- <script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script> -->
   <script type="text/javascript" src="//code.highcharts.com/maps/highmaps.js"></script>
   <script type="text/javascript" src="//code.highcharts.com/mapdata/custom/world-highres.js"></script>
-  <script>
+  <script type="text/javascript">
     function q( i, data ) {
       var Fi = i/10; // DECILI so we use: 10
       var n = data.length;
@@ -128,10 +128,13 @@
         $( '#top' ).empty();
         $( '#top' ).highcharts( {
           title: {
-            text: 'Telecom top countries'
+            text: 'Top countries'
           },
           chart: {
             type: 'column'
+          },
+          legend: {
+            enabled: false,
           },
           yAxis: {
             min: 0,
@@ -144,7 +147,7 @@
           },
           series: [
             {
-              name: 'Top called countries',
+              name: 'Calls per country',
               data: values,
             }
           ]
@@ -160,11 +163,20 @@
         } ).sort( cmp );
 
         // console.log( sortedValues );
+        var title = '';
+        if( type==='in' ) {
+          title += 'incoming';
+        } else if( type==='out' ) {
+          title += 'outgoing';
+        } else {
+          title += 'total';
+        }
+        title += ' phone calls';
 
         $( '#map' ).empty();
         $( '#map' ).highcharts( 'Map', {
           title: {
-            text: 'Telecom '+type+'going phone calls'
+            text: title
           },
           mapNavigation: {
             enabled: true
@@ -217,7 +229,7 @@
     <label for="start">Start date: </label><input type="date" id="start" value="2015-01-01">
 
     <!-- EndDate -->
-    <label for="End">end date: </label><input type="date" id="end">
+    <label for="End">end date: </label><input type="date" id="end" value="2015-06-30">
 
     <!-- Do it button -->
     <button id="doIt">Go!</button>
@@ -242,6 +254,7 @@
     } );
 
 
+    $btn.click();
   </script>
 </body>
 </html>
