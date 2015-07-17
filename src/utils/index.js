@@ -7,22 +7,21 @@ var bunyan = require( 'bunyan' );
 // Load my modules
 
 // Constant declaration
-var DATE_FORMAT = 'YYYY-MM-DD';
 
 // Module variables declaration
-var logger = bunyan.createLogger( {
-  name: 'API Requests',
+var log = bunyan.createLogger( {
+  name: 'Utils',
   level: 'trace',
 } );
 
 // Module functions declaration
 
-
 // Module initialization (at first load)
 
+// Entry point
+
 // Module exports
-module.exports.logger = logger;
-module.exports.DATE_FORMAT = DATE_FORMAT;
-module.exports.middlewares = require( './middlewares/' );
+module.exports.logger = log;
+
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

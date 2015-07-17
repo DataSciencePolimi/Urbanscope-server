@@ -1,60 +1,65 @@
 'use strict';
 // Load system modules
-let url = require( 'url' );
+var url = require( 'url' );
 
 // Load modules
-let bunyan = require( 'bunyan' );
-let monk = require( 'monk' );
-let wrap = require( 'co-monk' );
+var bunyan = require( 'bunyan' );
+var Promise = require( 'bluebird' );
+var MongoClient = require( 'mongodb' ).MongoClient;
+var Logger = require('mongodb').Logger;
 
 // Load my modules
-let config = require( '../../config/mongo.json' );
+var config = require( '../../config/mongo.json' );
 
 // Constant declaration
-const COLLECTION_NAME = 'posts';
+var POSTS_COLLECTION_NAME = 'posts';
+var CALLS_COLLECTION_NAME = 'telecom';
 
 // Module variables declaration
-let db, collection;
-let log = bunyan.createLogger( {
+var db;
+var log = bunyan.createLogger( {
   name: 'model',
   level: 'trace',
 } );
-
 
 // Module functions declaration
 function getDB() {
   return db;
 }
-function getCollection( name ) {
-  name = name || COLLECTION_NAME;
-  return wrap( db.get( name ) );
+function getCallsCollection() {
+  return db.collection( CALLS_COLLECTION_NAME );
 }
-function open() {
-  let hostname = config.url;
-  let dbName = config.database;
-  let fullUrl = url.resolve( hostname+'/', dbName );
-
-  log.trace( fullUrl );
-  db = monk( fullUrl );
-  collection = getCollection();
-
-  return db;
+function getPostsCollection() {
+  return db.collection( POSTS_COLLECTION_NAME );
 }
-function close() {
-  db.close();
+function connect() {
+  var hostname = config.url;
+  var dbName = config.database;
+  var fullUrl = url.resolve( hostname+'/', dbName );
+
+  log.trace( 'Connecting to: "%s"', fullUrl );
+
+  return MongoClient.connect( fullUrl, {
+    promiseLibrary: Promise,
+  } )
+  .then( function( myDB ) {
+
+    db = myDB;
+    //Logger.setLevel( 'debug' );
+
+    return myDB;
+  } )
+  ;
 }
 
 // Module class declaration
 
 // Module initialization (at first load)
 
-// Entry point
-
-// Exports
-module.exports.open = open;
-module.exports.close = close;
+// Module exports
+module.exports.connect = connect;
 module.exports.getDB = getDB;
-module.exports.getCollection = getCollection;
-
+module.exports.getPostsCollection = getPostsCollection;
+module.exports.getCallsCollection = getCallsCollection;
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

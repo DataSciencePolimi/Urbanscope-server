@@ -38,7 +38,7 @@ module.exports = function* () {
 
   log.trace( { query: query }, 'Final query' );
   let collection = getCollection();
-  let data = yield collection.find( query, 'date lang raw.retweeted' );
+  let data = yield collection.find( query, 'date lang raw.retweeted' ); // Come mai c'è RAW?
 
   let response = {
     startDate: moment( start ).format( DATE_FORMAT ),

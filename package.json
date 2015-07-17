@@ -7,23 +7,19 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "node --harmony server.js | bunyan -o short",
-    "server": "node --harmony server.js | bunyan -o short"
-  },
-  "engines": {
-    "node": ">=0.11"
+    "start": "node server.js | bunyan -o short",
+    "server": "node server.js | bunyan -o short",
+    "debug": "nodemon server.js | bunyan -o short"
   },
   "engineStrict": true,
   "dependencies": {
     "bluebird": "2.x",
     "bunyan": "1.x",
-    "co": "4.x",
-    "koa": "0.x",
-    "koa-cors": "0.x",
-    "koa-router": "4.x",
     "lodash": "3.x",
     "moment": "2.x",
-    "co-monk": "1.x",
-    "monk": "1.x"
+    "morgan": "1.x"
+  },
+  "devDependencies": {
+    "nodemon": "1.x"
   }
 }

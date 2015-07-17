@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Phone calls World Map</title>
+  <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <!-- <script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script> -->
+  <script type="text/javascript" src="//code.highcharts.com/maps/highmaps.js"></script>
+  <script type="text/javascript" src="//code.highcharts.com/mapdata/custom/world-highres.js"></script>
+  <script type="text/javascript">
+    function q( i, data ) {
+      var Fi = i/10; // DECILI so we use: 10
+      var n = data.length;
+      var int = Math.floor;
+
+      var prod = n*Fi;
+      var val;
+
+      // Check if the product is an integer
+      if( int( prod )===prod ) {
+        val = (data[ prod-1 ] + data[ prod ])/2;
+      } else {
+        val = data[ int( prod ) ];
+      }
+
+      return val;
+    }
+
+    function getTop( type, start, end ) {
+      var url = this.location.pathname.split( '/' );
+      url.pop();
+      url.push( 'top' );
+      var totalUrl = url.join( '/' );
+
+      return $.getJSON( totalUrl, {
+        startDate: start,
+        endDate: end,
+        orderBy: type,
+      } )
+      .then( function( data ) {
+        return $.grep( data.calls, function( v ) {
+          return v.country!=='IT';
+        } );
+      } );
+    }
+    function getTotal( type, start, end ) {
+      var url = this.location.pathname.split( '/' );
+      url.pop();
+      url.push( 'total' );
+      var totalUrl = url.join( '/' );
+
+      return $.getJSON( totalUrl, {
+        startDate: start,
+        endDate: end,
+      } )
+      .then( function( data ) {
+        var montlyCalls = data.calls;
+        var calls = {};
+
+        $.each( montlyCalls, function( i, v ) {
+          $.each( v.countries, function( key, val ) {
+            calls[ key ] = calls[ key ] || {
+              in: 0,
+              out: 0,
+              total: 0,
+            }
+            calls[ key ].in += val.in;
+            calls[ key ].out += val.out;
+            calls[ key ].total += val.total;
+          } );
+        } )
+
+
+        return $.map( calls, function( val, key ) {
+          return {
+            code: key,
+            value: val[ type ],
+          };
+        } )
+        .filter( function( v ) {
+          return v.code!=='IT' && v.code!=='null';
+        } );
+      } )
+    }
+
+    function getDeciles( data ) {
+      var deciles = [];
+      for( var i=1; i<10; i++ ) {
+        deciles[i-1] = q( i, data );
+      }
+      return deciles;
+    }
+
+    function getThresholds( data ) {
+      var deciles = getDeciles( data );
+      var classes = [];
+
+      classes.push( {
+        to: deciles[ 0 ],
+      } );
+      for( var i=1; i<deciles.length; i++ ) {
+        classes.push( {
+          from: deciles[i-1],
+          to: deciles[i],
+        } );
+      }
+      classes.push( {
+        from: deciles[ deciles.length-1 ],
+      } );
+
+      return classes;
+    }
+
+    function cmp( a, b ) {
+      return a-b;
+    }
+
+    function drawTop( type, start, end ) {
+      getTop( type, start, end )
+      .then( function(data) {
+
+        var categories = $.map( data, function( d ) {
+          return d.country;
+        } );
+        var values = $.map( data, function( d ) {
+          return d[ type ];
+        } );
+
+        $( '#top' ).empty();
+        $( '#top' ).highcharts( {
+          title: {
+            text: 'Top countries'
+          },
+          chart: {
+            type: 'column'
+          },
+          legend: {
+            enabled: false,
+          },
+          yAxis: {
+            min: 0,
+            title: {
+              text: 'Calls'
+            }
+          },
+          xAxis: {
+            categories: categories,
+          },
+          series: [
+            {
+              name: 'Calls per country',
+              data: values,
+            }
+          ]
+        } );
+      } );
+    }
+    function drawMap( type, start, end ) {
+      getTotal( type, start, end )
+      .then( function(data) {
+
+        var sortedValues = $.map( data, function( d ) {
+          return d.value;
+        } ).sort( cmp );
+
+        // console.log( sortedValues );
+        var title = '';
+        if( type==='in' ) {
+          title += 'incoming';
+        } else if( type==='out' ) {
+          title += 'outgoing';
+        } else {
+          title += 'total';
+        }
+        title += ' phone calls';
+
+        $( '#map' ).empty();
+        $( '#map' ).highcharts( 'Map', {
+          title: {
+            text: title
+          },
+          mapNavigation: {
+            enabled: true
+          },
+          legend: {
+            title: {
+              text: 'Calls',
+              style: {
+                color: (Highcharts.theme && Highcharts.theme.textColor) || 'black'
+              }
+            },
+            align: 'left',
+            verticalAlign: 'bottom',
+            floating: true,
+            layout: 'vertical',
+            valueDecimals: 0,
+            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || 'rgba(255, 255, 255, 0.85)',
+            symbolRadius: 0,
+            symbolHeight: 14
+          },
+          colorAxis: {
+            dataClasses: getThresholds( sortedValues ),
+          },
+          series: [
+            {
+              name: 'Total calls',
+              data: data,
+              animation: true,
+              joinBy: [ 'iso-a2', 'code' ],
+              mapData: Highcharts.maps["custom/world-highres"]
+            }
+          ]
+        } );
+      } )
+    }
+  </script>
+</head>
+<body>
+  <div>
+    <!-- Type -->
+    <label for="type">Type: </label>
+    <select id="type">
+      <option value="in">In</option>
+      <option value="out">Out</option>
+      <option value="total">Total</option>
+    </select>
+
+
+    <!-- StartDate -->
+    <label for="start">Start date: </label><input type="date" id="start" value="2015-01-01">
+
+    <!-- EndDate -->
+    <label for="End">end date: </label><input type="date" id="end" value="2015-06-30">
+
+    <!-- Do it button -->
+    <button id="doIt">Go!</button>
+  </div>
+  <hr>
+  <div id="map"></div>
+  <div id="top"></div>
+
+  <script>
+    var $type = $( '#type' );
+    var $start = $( '#start' );
+    var $end = $( '#end' );
+    var $btn = $( '#doIt' );
+
+    $btn.click( function() {
+      var type = $type.val();
+      var start = $start.val();
+      var end = $end.val();
+
+      drawMap( type, start, end );
+      drawTop( type, start, end );
+    } );
+
+
+    $btn.click();
+  </script>
+</body>
+</html>

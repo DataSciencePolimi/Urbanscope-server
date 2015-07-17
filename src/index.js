@@ -2,115 +2,97 @@
 // Load system modules
 
 // Load modules
-let co = require( 'co' );
-let koa = require( 'koa' );
-let Router = require( 'koa-router' );
-let cors = require( 'koa-cors' );
-let bunyan = require( 'bunyan' );
+var express = require( 'express' );
+var bunyan = require( 'bunyan' );
+var morgan = require( 'morgan' );
 
 // Load my modules
-let serverConfig = require( '../config/server.json' );
+var model = require( './model/' );
 
-let anomalyDistrict = require( './api/anomaly-district' );
-let anomalyTop = require( './api/anomaly-top' );
+var anomalies = require( './api/anomalies/' );
+var tweets = require( './api/tweets/' );
+var calls = require( './api/calls/' );
+var middlewares = require( './api/' ).middlewares;
 
-let tweetsDistrict = require( './api/tweets-district' );
-let tweetsTimeline = require( './api/tweets-timeline' );
-let tweetsText = require( './api/tweets-text' );
-
-let callsDistrict = require( './api/calls-district' );
-let callsTimeline = require( './api/calls-timeline' );
-let callsWorld = require( './api/calls-world' );
-let callsTotal = require( './api/calls-total' );
-let callsList = require( './api/calls-list' );
-let callsTop = require( './api/calls-top' );
-
-let openMongo = require( './model/' ).open;
-let closeMongo = require( './model/' ).close;
-let tweetsApiMiddleware = require( './api/' ).tweetsApiMiddleware;
-let callsApiMiddleware = require( './api/' ).callsApiMiddleware;
-
+var config = require( '../config/server.json' );
 
 // Constant declaration
 
 
 // Module variables declaration
-let app = koa();
-let log = bunyan.createLogger( {
-  name: 'server',
+var app = express();
+var server;
+var log = bunyan.createLogger( {
+  name: 'Server',
   level: 'trace',
 } );
 
 
 // Module functions declaration
-function* checkForError( next ) {
-  try {
-    yield next;
-    if( this.response.status===404 && !this.response.body ) {
-      this.throw( 404 );
-    }
-  } catch( err ) {
-    log.error( err, 'Got error' );
-    this.app.emit( 'error', err, this );
-    this.body = {
-      error: err.message,
-    };
-  }
+function serverStarted() {
+  var port = server.address().port;
+
+  log.info( '%s listening on port %d', app.get( 'title' ), port );
 }
+function startServer() {
+  server = app.listen( config.port, serverStarted );
+}
+
 
 // Module class declaration
 
-
-
 // Module initialization (at first load)
-app.name = 'UrbanScope server';
-app.proxy = true;
+app.set( 'title', 'UrbanScope server' );
+app.enable( 'trust proxy' );
 
 
 // Entry point
-co( function*() {
-  // Setup mongo
-  openMongo();
+model
+.connect()
+.then( function( db ) {
+  // Set the DB on the main app
+  app.db = db;
 
-  // Middlewares
-  app.use( cors() );
+  // Listen to errors
+  app.use( morgan( 'dev' ) );
 
-  // Add endpoints
-  let apiRoutes = new Router( app );
-
-  apiRoutes.use( checkForError );
+  // Set the endpoints
 
   // Anomalies
-  apiRoutes.get( '/anomaly/district', tweetsApiMiddleware, anomalyDistrict );
-  apiRoutes.get( '/anomaly/top', tweetsApiMiddleware, anomalyTop );
+  app.get( '/anomaly/district', middlewares.tweets, anomalies.district );
+  app.get( '/anomaly/top', middlewares.tweets, anomalies.top );
 
   // Tweets
-  apiRoutes.get( '/tweets/district', tweetsApiMiddleware, tweetsDistrict );
-  apiRoutes.get( '/tweets/timeline', tweetsApiMiddleware, tweetsTimeline );
-  apiRoutes.get( '/tweets/text', tweetsApiMiddleware, tweetsText );
+  app.get( '/tweets/district', middlewares.tweets, tweets.district );
+  app.get( '/tweets/timeline', middlewares.tweets, tweets.timeline );
+  app.get( '/tweets/text', middlewares.tweets, tweets.text );
 
   // Calls
-  apiRoutes.get( '/calls/district', callsApiMiddleware, callsDistrict );
-  apiRoutes.get( '/calls/timeline', callsApiMiddleware, callsTimeline );
-  apiRoutes.get( '/calls/list', callsApiMiddleware, callsList );
-  apiRoutes.get( '/calls/total', callsApiMiddleware, callsTotal );
-  apiRoutes.get( '/calls/top', callsApiMiddleware, callsTop );
-  apiRoutes.get( '/calls/world', callsWorld );
+  app.get( '/calls/district', middlewares.calls, calls.district );
+  app.get( '/calls/timeline', middlewares.calls, calls.timeline );
+  app.get( '/calls/list', middlewares.calls, calls.list );
+  app.get( '/calls/total', middlewares.calls, calls.total );
+  app.get( '/calls/top', middlewares.calls, calls.top );
+  app.get( '/calls/world', calls.world );
 
-
-  // Add the router to the Koa Application
-  app.use( apiRoutes.routes() );
-  app.use( apiRoutes.allowedMethods() );
-
-  // Start server
-  let port = serverConfig.port;
-  log.debug( 'Start server @ port %d', port );
-  app.listen( port );
+  app.use( middlewares.error );
 } )
-.catch( function( err ) {
-  log.fatal( err, 'NUOOOOOOOOO' );
-  closeMongo();
-  process.exit( 1 );
+.then( startServer ) // listen to the server
+;
+
+process.on('uncaughtException', function( err ) {
+  log.fatal( { err: err }, 'Uncaught exception, bye: ', err.stack );
+
+  // Close the connection
+  model
+  .getDB()
+  .close()
+  .delay( 500 )
+  .then( function() {
+    process.exit(1);
+  } );
 } );
+
+// Module exports
 
 //  50 6F 77 65 72 65 64  62 79  56 6F 6C 6F 78

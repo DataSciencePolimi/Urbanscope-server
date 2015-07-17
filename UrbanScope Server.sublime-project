@@ -8,12 +8,17 @@
         "db",
         "dist",
         "src",
+        "src_old",
         "node_modules"
       ]
     },
     {
       "name": "Source",
       "path": "src"
+    },
+    {
+      "name": "Source OLD",
+      "path": "src_old"
     }
   ]
 }
