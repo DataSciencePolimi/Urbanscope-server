@@ -11,12 +11,13 @@
     "server": "node server.js | bunyan -o short",
     "debug": "nodemon server.js | bunyan -o short"
   },
-  "engineStrict": true,
   "dependencies": {
     "bluebird": "2.x",
     "bunyan": "1.x",
+    "express": "4.x",
     "lodash": "3.x",
     "moment": "2.x",
+    "mongodb": "2.x",
     "morgan": "1.x"
   },
   "devDependencies": {
