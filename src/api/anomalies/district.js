@@ -38,8 +38,7 @@ module.exports = function( req, res, next ) {
 
   // PARAMETERS
   var lang = params.lang;
-  delete query.lang;
-
+  query.lang = { $ne: 'und' };
 
   // Only use suitable nils
   query.nil = { $ne: null };
