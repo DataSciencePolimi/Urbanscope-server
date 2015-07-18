@@ -70,9 +70,9 @@ module.exports = function( req, res, next ) {
       // Additional params
     };
 
-    return res.json( response );
+    // return res.json( response );
 
-    // return cache.save( response, req, res, next );
+    return cache.save( response, req, res, next );
   }
   function closeCursor() {
     log.trace( 'Closing the cursor' );
