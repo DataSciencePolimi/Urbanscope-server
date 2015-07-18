@@ -9,7 +9,8 @@
         "dist",
         "src",
         "src_old",
-        "node_modules"
+        "node_modules",
+        "cache"
       ]
     },
     {

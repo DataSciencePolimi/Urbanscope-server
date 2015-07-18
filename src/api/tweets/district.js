@@ -21,6 +21,15 @@ var log = logger.child( {
 } );
 
 // Module functions declaration
+function mapData( nilData ) {
+  var data = {};
+
+  data.nil = nilData._id; // eslint-disable-line no-underscore-dangle
+  data.value = nilData.value;
+  data.langs = _.countBy( nilData.langs );
+
+  return data;
+}
 
 // Module class declaration
 
@@ -37,65 +46,8 @@ module.exports = function( req, res, next ) {
 
   // PARAMETERS
   var lang = params.lang;
+  var nils = params.nils;
 
-  log.trace( { query: query }, 'Final query' );
-  // Get the collection to perform the aggregation
-  var collection = model.getPostsCollection();
-  var cursor = collection.find( query );
-
-  var nilMap = {};
-  function sendResponse() {
-    var nils = _( nilMap )
-    .mapValues( function( langs ) {
-      return _.countBy( langs );
-    } )
-    .map( function( langs, nil ) {
-      return {
-        nil: Number( nil ),
-        langs: langs,
-        value: _.sum( langs ),
-      };
-    } )
-    .sortByOrder( 'nil', 'asc' )
-    .value();
-
-    var response = {
-      startDate: moment.utc( start ).format( DATE_FORMAT ),
-      endDate: moment.utc( end ).format( DATE_FORMAT ),
-      lang: lang,
-
-      // DATA
-      nils: nils,
-
-      // Additional params
-    };
-
-    // return res.json( response );
-
-    return cache.save( response, req, res, next );
-  }
-  function closeCursor() {
-    log.trace( 'Closing the cursor' );
-    cursor
-    .close() // close the cursor
-    .then( sendResponse )
-    .catch( next );
-  }
-  return cursor
-  .project( {
-    _id: 0,
-    lang: 1,
-    nil: 1,
-  } )
-  .stream()
-  .on( 'data', function( data ) {
-    nilMap[ data.nil ] = nilMap[ data.nil ] || [];
-    nilMap[ data.nil ].push( data.lang );
-  } )
-  .once( 'end', function() {
-    return closeCursor();
-  } );
-  /*
   var options = {
     allowDiskUse: true,
   };
@@ -118,17 +70,8 @@ module.exports = function( req, res, next ) {
   pipeline.push( {
     $group: {
       _id: '$nil',
-      posts: { $push: '$$ROOT' },
+      langs: { $push: '$lang' },
       value: { $sum: { $add: 1 } },
-    }
-  } );
-  // Stage: rename the fileds
-  pipeline.push( {
-    $project: {
-      nil: '$_id',
-      posts: 1,
-      value: 1,
-      _id: 0,
     }
   } );
 
@@ -138,12 +81,12 @@ module.exports = function( req, res, next ) {
   var cursor = collection.aggregate( pipeline, options );
 
   return cursor
-  .toArray() // Get all the data
+  .toArray()
   .tap( function() {
     log.trace( 'Closing the cursor' );
     return cursor.close(); // close the cursor
   } )
-  .then( parseData )
+  .map( mapData )
   .then( function( data ) {
 
     var response = {
@@ -151,17 +94,17 @@ module.exports = function( req, res, next ) {
       endDate: moment.utc( end ).format( DATE_FORMAT ),
       lang: lang,
 
+      // Additional params
+      selectedNils: nils || 'all', // eslint-disable-line camelcase
+
       // DATA
       nils: _.sortByOrder( data, 'nil', 'asc' ),
 
-      // Additional params
     };
 
     return cache.save( response, req, res, next );
   })
   .catch( next );
-
-*/
 };
 
 

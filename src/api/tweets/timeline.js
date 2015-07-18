@@ -21,16 +21,17 @@ var log = logger.child( {
 } );
 
 // Module functions declaration
-function getStringMonth( document ) {
-  var date = document.date;
-  var year = date.getFullYear();
-  var month = date.getMonth()+1;
+function mapData( data ) {
+  var year = data._id.y; // eslint-disable-line no-underscore-dangle
+  var month = data._id.m; // eslint-disable-line no-underscore-dangle
 
-  var myDate = ''+year;
-  myDate += '-';
-  myDate += ''+( month>9? month: '0'+month );
+  var date = ''+year+'-';
+  date += ''+( month>9? month: '0'+month );
 
-  return myDate;
+  return {
+    date: date,
+    value: data.value,
+  };
 }
 // Module class declaration
 
@@ -48,23 +49,50 @@ module.exports = function( req, res, next ) {
   // PARAMETERS
   var lang = params.lang;
 
-  // Add nil filter
+  // Use only siutable nils
   query.nil = { $ne: null };
 
+  var options = {
+    allowDiskUse: true,
+  };
 
-  log.trace( { query: query }, 'Final query' );
+  // Create the pipeline
+  var pipeline = [];
+  // Stage: match the posts with the specified filters
+  pipeline.push( {
+    $match: query,
+  } );
+  // Stage: keep only the fields needed for later computation
+  pipeline.push( {
+    $project: {
+      _id: 0,
+      date: 1,
+    },
+  } );
+  // Stage: group by date (year and month), and count the elements in each group
+  pipeline.push( {
+    $group: {
+      _id: {
+        y: { $year: '$date' },
+        m: { $month: '$date' },
+      },
+      value: { $sum: { $add: 1 } },
+    }
+  } );
+
+  log.trace( { pipeline: pipeline }, 'Pipeline' );
   // Get the collection to perform the aggregation
   var collection = model.getPostsCollection();
-  var cursor = collection.find( query );
+  var cursor = collection.aggregate( pipeline, options );
 
-  var timeline = {};
-  function sendResponse() {
-    timeline = _.map( timeline, function( value, strDate ) {
-      return {
-        value: value,
-        date: strDate,
-      };
-    } );
+  return cursor
+  .toArray()
+  .tap( function() {
+    log.trace( 'Closing the cursor' );
+    return cursor.close(); // close the cursor
+  } )
+  .map( mapData )
+  .then( function( data ) {
 
     var response = {
       startDate: moment.utc( start ).format( DATE_FORMAT ),
@@ -72,34 +100,14 @@ module.exports = function( req, res, next ) {
       lang: lang,
 
       // DATA
-      timeline: timeline,
+      timeline: _.sortByOrder( data, 'date' , 'asc' ),
 
       // Additional params
     };
 
     return cache.save( response, req, res, next );
-  }
-  function closeCursor() {
-    log.trace( 'Closing the cursor' );
-    cursor
-    .close() // close the cursor
-    .then( sendResponse )
-    .catch( next );
-  }
-  return cursor
-  .project( {
-    date: 1,
   } )
-  .stream( {
-    transform: getStringMonth
-  } )
-  .on( 'data', function( date ) {
-    timeline[ date ] = timeline[ date ] || 0;
-    timeline[ date ] += 1;
-  } )
-  .once( 'end', function() {
-    return closeCursor();
-  } );
+  .catch( next );
 };
 
 
