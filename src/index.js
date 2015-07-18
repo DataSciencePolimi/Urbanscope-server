@@ -60,23 +60,27 @@ model
   // Listen to errors
   app.use( morgan( 'dev' ) );
 
-  // Set the endpoints
+  // Enable cache
+  app.use( middlewares.cache );
 
   // Anomalies
-  app.get( '/anomaly/district', middlewares.cache, middlewares.tweets, anomalies.district );
-  app.get( '/anomaly/top', middlewares.cache, middlewares.tweets, anomalies.top );
+  app.use( '/anomaly', middlewares.tweets );
+  app.get( '/anomaly/district', anomalies.district );
+  app.get( '/anomaly/top', anomalies.top );
 
   // Tweets
-  app.get( '/tweets/district', middlewares.cache, middlewares.tweets, tweets.district );
-  app.get( '/tweets/timeline', middlewares.cache, middlewares.tweets, tweets.timeline );
-  app.get( '/tweets/text', middlewares.cache, middlewares.tweets, tweets.text );
+  app.use( '/tweets', middlewares.tweets );
+  app.get( '/tweets/district', tweets.district );
+  app.get( '/tweets/timeline', tweets.timeline );
+  app.get( '/tweets/text', tweets.text );
 
   // Calls
-  app.get( '/calls/district', middlewares.calls, calls.district );
-  app.get( '/calls/timeline', middlewares.calls, calls.timeline );
-  app.get( '/calls/list', middlewares.calls, calls.list );
-  app.get( '/calls/total', middlewares.calls, calls.total );
-  app.get( '/calls/top', middlewares.calls, calls.top );
+  app.use( '/calls', middlewares.calls );
+  app.get( '/calls/district', calls.district );
+  app.get( '/calls/timeline', calls.timeline );
+  app.get( '/calls/list', calls.list );
+  app.get( '/calls/total', calls.total );
+  app.get( '/calls/top', calls.top );
   app.get( '/calls/world', calls.world );
 
   app.use( middlewares.error );
