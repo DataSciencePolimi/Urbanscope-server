@@ -23,12 +23,15 @@ function getUrl( req ) {
 }
 function getCacheFilePath( req ) {
   var url = getUrl( req );
+  var context = req.path.split( '/' ).slice( 1 ).join( '-' );
+
   var md5 = crypto.createHash( 'md5' ).update( url ).digest( 'hex' );
 
-  log.trace( 'Reuest url: "%s"', url );
+  log.trace( 'Context: "%s"', context );
+  log.trace( 'Request url: "%s"', url );
   log.trace( 'MD5: %s', md5 );
 
-  var cacheFile = path.join( CACHE_PATH, md5+'.json' );
+  var cacheFile = path.join( CACHE_PATH, context+'-'+md5+'.json' );
   return cacheFile;
 }
 function saveCacheEntry( data, req, res, next ) {
