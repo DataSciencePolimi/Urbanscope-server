@@ -115,11 +115,12 @@ module.exports = function( req, res, next ) {
       endDate: moment.utc( end ).format( DATE_FORMAT ),
       type: type,
 
+      // Additional params
+      selectedNils: nils || 'all',
+
       // DATA
       nils: data,
 
-      // Additional params
-      nil_ID: nils || 'all', // eslint-disable-line camelcase
     };
 
     return res.json( response );

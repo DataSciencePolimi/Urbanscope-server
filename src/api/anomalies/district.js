@@ -65,12 +65,13 @@ module.exports = function( req, res, next ) {
       lang: lang,
       nonTransparent: aboveThreshold,
 
-      // DATA
-      nils: _.sortByOrder( data, 'nil_id', 'asc' ),
-
       // Additional params
       belowThreshold: belowThreshold,
       counts: _.countBy( data, 'type' ),
+
+      // DATA
+      nils: _.sortByOrder( data, 'nil_id', 'asc' ),
+
     };
 
     return cache.save( response, req, res, next );

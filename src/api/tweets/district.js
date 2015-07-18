@@ -95,7 +95,7 @@ module.exports = function( req, res, next ) {
       lang: lang,
 
       // Additional params
-      selectedNils: nils || 'all', // eslint-disable-line camelcase
+      selectedNils: nils || 'all',
 
       // DATA
       nils: _.sortByOrder( data, 'nil', 'asc' ),

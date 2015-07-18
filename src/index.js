@@ -58,7 +58,7 @@ model
 } )
 .then( function() {
   // Listen to errors
-  app.use( morgan( 'dev' ) );
+  app.use( morgan( 'combined' ) );
 
   // Enable cache
   app.use( middlewares.cache );
