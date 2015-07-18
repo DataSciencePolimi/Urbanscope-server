@@ -7,6 +7,7 @@ var moment = require( 'moment' );
 var _ = require( 'lodash' );
 
 // Load my modules
+var cache = require( '../../utils/cache' );
 var model = require( '../../model/' );
 var logger = require( './' ).logger;
 
@@ -111,7 +112,7 @@ module.exports = function( req, res, next ) {
       // Additional params
     };
 
-    return res.json( response );
+    return cache.save( response, req, res, next );
   })
   .catch( next );
 

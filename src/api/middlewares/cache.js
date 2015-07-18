@@ -4,6 +4,7 @@
 // Load modules
 
 // Load my modules
+var cache = require( '../../utils/cache' );
 var middleware = require( './' );
 var logger = middleware.logger;
 
@@ -11,7 +12,7 @@ var logger = middleware.logger;
 
 // Module variables declaration
 var log = logger.child( {
-  middleware: 'error',
+  middleware: 'cache',
 } );
 
 // Module functions declaration
@@ -19,16 +20,15 @@ var log = logger.child( {
 // Module initialization (at first load)
 
 // Module exports
-module.exports = function errorMiddleware( err, req, res, next ) {
-  log.error( { err: err }, 'Server error' );
-  if( res.headersSent ) {
-    return next( err );
-  }
-
-  res.status( 500 );
-  res.json( {
-    error: err.message,
-    stack: err.stack,
+module.exports = function cacheMiddleware( req, res, next ) {
+  cache.get( req, function( err, filePath ) {
+    if( err ) {
+      log.trace( 'Cache miss' );
+      return next();
+    } else {
+      log.trace( 'Cache hit' );
+      return res.sendFile( filePath );
+    }
   } );
 };
 

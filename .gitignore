@@ -29,6 +29,9 @@ lib-cov
 # Do not sync dependencies
 node_modules
 
+# Do not sync cache
+cache
+
 # Do not configuration files
 !config/nils.json
 config/*.json

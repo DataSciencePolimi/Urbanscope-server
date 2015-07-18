@@ -7,6 +7,7 @@ var moment = require( 'moment' );
 var _ = require( 'lodash' );
 
 // Load my modules
+var cache = require( '../../utils/cache' );
 var logger = require( './' ).logger;
 var anomalies = require( '../../utils/anomalies' );
 var nils = require( '../../../config/nils.json' );
@@ -73,7 +74,7 @@ module.exports = function( req, res, next ) {
       counts: _.countBy( data, 'type' ),
     };
 
-    return res.json( response );
+    return cache.save( response, req, res, next );
   } )
   .catch( next );
 };

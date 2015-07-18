@@ -61,6 +61,7 @@ module.exports.logger = log;
 module.exports.handleDates = handleDates;
 module.exports.handleNils = handleNils;
 module.exports.error = require( './error' );
+module.exports.cache = require( './cache' );
 module.exports.tweets = require( './tweets' );
 module.exports.calls = require( './calls' );
 

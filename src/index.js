@@ -2,12 +2,15 @@
 // Load system modules
 
 // Load modules
+var Promise = require( 'bluebird' );
 var express = require( 'express' );
 var bunyan = require( 'bunyan' );
 var morgan = require( 'morgan' );
+var mkdirp = Promise.promisifyAll( require( 'mkdirp' ) );
 
 // Load my modules
 var model = require( './model/' );
+var cache = require( './utils/cache' );
 
 var anomalies = require( './api/anomalies/' );
 var tweets = require( './api/tweets/' );
@@ -49,23 +52,24 @@ app.enable( 'trust proxy' );
 // Entry point
 model
 .connect()
-.then( function( db ) {
-  // Set the DB on the main app
-  app.db = db;
-
+.then( function() {
+  // Create the cache dir if not present
+  return mkdirp.mkdirpAsync( cache.CACHE_PATH );
+} )
+.then( function() {
   // Listen to errors
   app.use( morgan( 'dev' ) );
 
   // Set the endpoints
 
   // Anomalies
-  app.get( '/anomaly/district', middlewares.tweets, anomalies.district );
-  app.get( '/anomaly/top', middlewares.tweets, anomalies.top );
+  app.get( '/anomaly/district', middlewares.cache, middlewares.tweets, anomalies.district );
+  app.get( '/anomaly/top', middlewares.cache, middlewares.tweets, anomalies.top );
 
   // Tweets
-  app.get( '/tweets/district', middlewares.tweets, tweets.district );
-  app.get( '/tweets/timeline', middlewares.tweets, tweets.timeline );
-  app.get( '/tweets/text', middlewares.tweets, tweets.text );
+  app.get( '/tweets/district', middlewares.cache, middlewares.tweets, tweets.district );
+  app.get( '/tweets/timeline', middlewares.cache, middlewares.tweets, tweets.timeline );
+  app.get( '/tweets/text', middlewares.cache, middlewares.tweets, tweets.text );
 
   // Calls
   app.get( '/calls/district', middlewares.calls, calls.district );
