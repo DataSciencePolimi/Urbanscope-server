@@ -68,7 +68,7 @@ module.exports = function tweetsMiddleware( req, res, next ) {
   // Add the filter for the language
   if( lang==='other' ) {
     dbQuery.lang = {
-      $nin: [ 'it', 'en', 'und' ],
+      $nin: [ 'it', 'en', 'und', null ],
     };
   } else {
     dbQuery.lang = lang;

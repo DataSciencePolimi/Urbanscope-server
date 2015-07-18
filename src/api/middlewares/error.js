@@ -20,7 +20,9 @@ var log = logger.child( {
 
 // Module exports
 module.exports = function errorMiddleware( err, req, res, next ) {
-  log.error( { err: err }, 'Server error' );
+  log.error( {
+    err: err,
+  }, 'Server error: ', err.stack );
   if( res.headersSent ) {
     return next( err );
   }
