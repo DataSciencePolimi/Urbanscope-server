@@ -21,19 +21,7 @@ var log = logger.child( {
 } );
 
 // Module functions declaration
-function parseData( data ) {
-  var nils = _( data )
-  .map( function( nilData ) {
 
-    nilData.langs = _.countBy( nilData.posts, 'lang' );
-    delete nilData.posts;
-
-    return nilData;
-  } )
-  .value();
-
-  return nils;
-}
 // Module class declaration
 
 // Module initialization (at first load)
@@ -50,7 +38,64 @@ module.exports = function( req, res, next ) {
   // PARAMETERS
   var lang = params.lang;
 
+  log.trace( { query: query }, 'Final query' );
+  // Get the collection to perform the aggregation
+  var collection = model.getPostsCollection();
+  var cursor = collection.find( query );
 
+  var nilMap = {};
+  function sendResponse() {
+    var nils = _( nilMap )
+    .mapValues( function( langs ) {
+      return _.countBy( langs );
+    } )
+    .map( function( langs, nil ) {
+      return {
+        nil: Number( nil ),
+        langs: langs,
+        value: _.sum( langs ),
+      };
+    } )
+    .sortByOrder( 'nil', 'asc' )
+    .value();
+
+    var response = {
+      startDate: moment.utc( start ).format( DATE_FORMAT ),
+      endDate: moment.utc( end ).format( DATE_FORMAT ),
+      lang: lang,
+
+      // DATA
+      nils: nils,
+
+      // Additional params
+    };
+
+    return res.json( response );
+
+    // return cache.save( response, req, res, next );
+  }
+  function closeCursor() {
+    log.trace( 'Closing the cursor' );
+    cursor
+    .close() // close the cursor
+    .then( sendResponse )
+    .catch( next );
+  }
+  return cursor
+  .project( {
+    _id: 0,
+    lang: 1,
+    nil: 1,
+  } )
+  .stream()
+  .on( 'data', function( data ) {
+    nilMap[ data.nil ] = nilMap[ data.nil ] || [];
+    nilMap[ data.nil ].push( data.lang );
+  } )
+  .once( 'end', function() {
+    return closeCursor();
+  } );
+  /*
   var options = {
     allowDiskUse: true,
   };
@@ -116,7 +161,7 @@ module.exports = function( req, res, next ) {
   })
   .catch( next );
 
-
+*/
 };
 
 
