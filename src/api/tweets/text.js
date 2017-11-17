@@ -61,6 +61,9 @@ module.exports = function( req, res, next ) {
   // Set the correct nil filter
   var nil = nils[ 0 ];
   query.nil = nil;
+  
+  // Filter by language
+  query.lang = lang;
 
   // Remove the sensitive contents
   query[ 'raw.possibly_sensitive' ] = { $ne: true };
